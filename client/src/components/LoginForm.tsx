@@ -31,33 +31,33 @@ export default function LoginForm({ onLogin }: LoginFormProps) {
           </div>
           <h1 className="text-3xl font-semibold">Scanner Tracker</h1>
           <p className="text-muted-foreground">
-            Delivery Scanner Management System
+            Bezorgscanner Beheersysteem
           </p>
         </div>
 
         <Card className="p-6">
           <form onSubmit={handleSubmit} className="space-y-4">
             <div className="space-y-2">
-              <Label htmlFor="username">Username</Label>
+              <Label htmlFor="username">Gebruikersnaam</Label>
               <Input
                 id="username"
                 type="text"
                 value={username}
                 onChange={(e) => setUsername(e.target.value)}
-                placeholder="Enter your username"
+                placeholder="Voer uw gebruikersnaam in"
                 autoComplete="username"
                 data-testid="input-username"
               />
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="password">Password</Label>
+              <Label htmlFor="password">Wachtwoord</Label>
               <Input
                 id="password"
                 type="password"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
-                placeholder="Enter your password"
+                placeholder="Voer uw wachtwoord in"
                 autoComplete="current-password"
                 data-testid="input-password"
               />
@@ -69,7 +69,7 @@ export default function LoginForm({ onLogin }: LoginFormProps) {
               disabled={!username.trim() || !password.trim()}
               data-testid="button-login"
             >
-              Login
+              Inloggen
             </Button>
           </form>
         </Card>

@@ -29,33 +29,33 @@ export default function DriverManagement({
 
   return (
     <Card className="p-6">
-      <h2 className="text-xl font-semibold mb-4">Manage Drivers</h2>
+      <h2 className="text-xl font-semibold mb-4">Chauffeurs Beheren</h2>
 
       <form onSubmit={handleAdd} className="space-y-4 mb-6">
         <div className="space-y-2">
-          <Label htmlFor="new-driver">Add Driver</Label>
+          <Label htmlFor="new-driver">Chauffeur Toevoegen</Label>
           <div className="flex gap-2">
             <Input
               id="new-driver"
               type="text"
               value={newDriver}
               onChange={(e) => setNewDriver(e.target.value)}
-              placeholder="Enter driver name"
+              placeholder="Voer naam chauffeur in"
               data-testid="input-new-driver"
             />
             <Button type="submit" disabled={!newDriver.trim()} data-testid="button-add-driver">
               <Plus className="w-4 h-4 mr-2" />
-              Add
+              Toevoegen
             </Button>
           </div>
         </div>
       </form>
 
       <div className="space-y-2">
-        <Label>Current Drivers ({drivers.length})</Label>
+        <Label>Huidige Chauffeurs ({drivers.length})</Label>
         {drivers.length === 0 ? (
           <p className="text-sm text-muted-foreground py-4 text-center">
-            No drivers added yet
+            Nog geen chauffeurs toegevoegd
           </p>
         ) : (
           <div className="flex flex-wrap gap-2">

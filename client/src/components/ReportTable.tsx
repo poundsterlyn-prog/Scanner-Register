@@ -26,7 +26,7 @@ export default function ReportTable({ entries, date }: ReportTableProps) {
   return (
     <Card className="overflow-hidden">
       <div className="p-6 border-b">
-        <h2 className="text-xl font-semibold">Daily Report</h2>
+        <h2 className="text-xl font-semibold">Dagelijks Rapport</h2>
         <p className="text-sm text-muted-foreground mt-1">{date}</p>
       </div>
 
@@ -35,9 +35,9 @@ export default function ReportTable({ entries, date }: ReportTableProps) {
           <TableHeader>
             <TableRow>
               <TableHead>Scanner ID</TableHead>
-              <TableHead>Driver</TableHead>
-              <TableHead>Assigned</TableHead>
-              <TableHead>Returned</TableHead>
+              <TableHead>Chauffeur</TableHead>
+              <TableHead>Toegewezen</TableHead>
+              <TableHead>Ingeleverd</TableHead>
               <TableHead>Status</TableHead>
             </TableRow>
           </TableHeader>
@@ -45,7 +45,7 @@ export default function ReportTable({ entries, date }: ReportTableProps) {
             {entries.length === 0 ? (
               <TableRow>
                 <TableCell colSpan={5} className="text-center text-muted-foreground">
-                  No assignments today
+                  Geen toewijzingen vandaag
                 </TableCell>
               </TableRow>
             ) : (
@@ -70,7 +70,7 @@ export default function ReportTable({ entries, date }: ReportTableProps) {
                       variant={entry.status === "returned" ? "outline" : "destructive"}
                       data-testid={`badge-report-status-${entry.scannerId}`}
                     >
-                      {entry.status === "returned" ? "Returned" : "Pending"}
+                      {entry.status === "returned" ? "Ingeleverd" : "Wachtend"}
                     </Badge>
                   </TableCell>
                 </TableRow>

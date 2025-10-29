@@ -7,11 +7,11 @@ export default function Login() {
   const { toast } = useToast();
 
   const handleLogin = (username: string, password: string) => {
-    console.log("Login attempt:", username, password);
+    console.log("Inlogpoging:", username, password);
     
     toast({
-      title: "Login Successful",
-      description: `Welcome back, ${username}!`,
+      title: "Inloggen Succesvol",
+      description: `Welkom terug, ${username}!`,
     });
 
     setLocation("/dashboard");

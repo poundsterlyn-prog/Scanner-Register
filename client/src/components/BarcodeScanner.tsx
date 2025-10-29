@@ -17,7 +17,7 @@ export default function BarcodeScanner({
   onScan,
   onCancel,
   title = "Scan Barcode",
-  description = "Point camera at barcode or enter manually",
+  description = "Richt camera op barcode of voer handmatig in",
 }: BarcodeScannerProps) {
   const [manualInput, setManualInput] = useState("");
   const [showManualInput, setShowManualInput] = useState(true);
@@ -96,24 +96,24 @@ export default function BarcodeScanner({
           <div className="space-y-4">
             <form onSubmit={handleManualSubmit}>
               <div className="space-y-2">
-                <Label htmlFor="manual-barcode">Enter Scanner ID</Label>
+                <Label htmlFor="manual-barcode">Voer Scanner ID in</Label>
                 <Input
                   id="manual-barcode"
                   type="text"
                   value={manualInput}
                   onChange={(e) => setManualInput(e.target.value)}
                   onKeyDown={handleKeyboardInput}
-                  placeholder="SC-001234 or scan with Zebra scanner"
+                  placeholder="SC-001234 of scan met Zebra scanner"
                   autoFocus
                   data-testid="input-manual-barcode"
                 />
                 <p className="text-xs text-muted-foreground">
-                  Type or use your Zebra DS3678 scanner
+                  Typ of gebruik uw Zebra DS3678 scanner
                 </p>
               </div>
               <div className="flex gap-2 mt-4">
                 <Button type="submit" className="flex-1" data-testid="button-submit-manual">
-                  Confirm
+                  Bevestigen
                 </Button>
                 <Button
                   type="button"
@@ -125,7 +125,7 @@ export default function BarcodeScanner({
                   data-testid="button-show-camera"
                 >
                   <Camera className="w-4 h-4 mr-2" />
-                  Use Camera
+                  Gebruik Camera
                 </Button>
               </div>
             </form>
@@ -145,7 +145,7 @@ export default function BarcodeScanner({
                 data-testid="button-manual-input"
               >
                 <Keyboard className="w-4 h-4 mr-2" />
-                Enter Manually
+                Handmatig Invoeren
               </Button>
             </div>
           </div>

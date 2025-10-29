@@ -23,7 +23,7 @@ export default function TopBar({ currentDate, onLogout }: TopBarProps) {
         {onLogout && (
           <Button variant="outline" onClick={onLogout} data-testid="button-logout">
             <LogOut className="w-4 h-4 mr-2" />
-            Logout
+            Uitloggen
           </Button>
         )}
       </div>

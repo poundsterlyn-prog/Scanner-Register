@@ -49,12 +49,12 @@ export default function DriverSelector({
       )}
 
       <div className="space-y-2">
-        <Label htmlFor="driver-select">Assign to Driver</Label>
+        <Label htmlFor="driver-select">Toewijzen aan Chauffeur</Label>
         {!useCustom ? (
           <div className="space-y-2">
             <Select value={selectedDriver} onValueChange={setSelectedDriver}>
               <SelectTrigger id="driver-select" data-testid="select-driver">
-                <SelectValue placeholder="Select a driver" />
+                <SelectValue placeholder="Selecteer een chauffeur" />
               </SelectTrigger>
               <SelectContent>
                 {drivers.map((driver) => (
@@ -71,7 +71,7 @@ export default function DriverSelector({
               className="w-full"
               data-testid="button-add-custom-driver"
             >
-              + Add New Driver
+              + Nieuwe Chauffeur Toevoegen
             </Button>
           </div>
         ) : (
@@ -81,7 +81,7 @@ export default function DriverSelector({
               type="text"
               value={customDriver}
               onChange={(e) => setCustomDriver(e.target.value)}
-              placeholder="Enter driver name"
+              placeholder="Voer naam chauffeur in"
               autoFocus
               data-testid="input-custom-driver"
             />
@@ -95,7 +95,7 @@ export default function DriverSelector({
               className="w-full"
               data-testid="button-use-list"
             >
-              Choose from List
+              Kies uit Lijst
             </Button>
           </div>
         )}
@@ -108,11 +108,11 @@ export default function DriverSelector({
           className="flex-1"
           data-testid="button-confirm-assignment"
         >
-          Confirm Assignment
+          Toewijzing Bevestigen
         </Button>
         {onCancel && (
           <Button variant="outline" onClick={onCancel} data-testid="button-cancel-assignment">
-            Cancel
+            Annuleren
           </Button>
         )}
       </div>

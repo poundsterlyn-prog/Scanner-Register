@@ -19,7 +19,7 @@ export default function QuickActions({
 }: QuickActionsProps) {
   return (
     <Card className="p-6">
-      <h2 className="text-lg font-medium mb-4">Quick Actions</h2>
+      <h2 className="text-lg font-medium mb-4">Snelle Acties</h2>
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
         <Button
           onClick={onScanForAssignment}
@@ -28,8 +28,8 @@ export default function QuickActions({
         >
           <Camera className="w-5 h-5 mr-3" />
           <div className="text-left">
-            <div className="font-medium">Assign Scanner</div>
-            <div className="text-xs opacity-90">Scan to assign driver</div>
+            <div className="font-medium">Scanner Toewijzen</div>
+            <div className="text-xs opacity-90">Scan om chauffeur toe te wijzen</div>
           </div>
         </Button>
 
@@ -41,8 +41,8 @@ export default function QuickActions({
         >
           <PackageCheck className="w-5 h-5 mr-3" />
           <div className="text-left">
-            <div className="font-medium">Return Scanner</div>
-            <div className="text-xs opacity-90">Scan to mark returned</div>
+            <div className="font-medium">Scanner Inleveren</div>
+            <div className="text-xs opacity-90">Scan om als ingeleverd te markeren</div>
           </div>
         </Button>
 
@@ -54,8 +54,8 @@ export default function QuickActions({
         >
           <UserPlus className="w-5 h-5 mr-3" />
           <div className="text-left">
-            <div className="font-medium">Register Scanner</div>
-            <div className="text-xs opacity-90">Add new scanner</div>
+            <div className="font-medium">Scanner Registreren</div>
+            <div className="text-xs opacity-90">Nieuwe scanner toevoegen</div>
           </div>
         </Button>
 
@@ -67,8 +67,8 @@ export default function QuickActions({
         >
           <FileText className="w-5 h-5 mr-3" />
           <div className="text-left">
-            <div className="font-medium">View Report</div>
-            <div className="text-xs opacity-90">Daily summary</div>
+            <div className="font-medium">Rapport Bekijken</div>
+            <div className="text-xs opacity-90">Dagelijkse samenvatting</div>
           </div>
         </Button>
 
@@ -80,8 +80,8 @@ export default function QuickActions({
         >
           <Settings className="w-5 h-5 mr-3" />
           <div className="text-left">
-            <div className="font-medium">Manage Drivers</div>
-            <div className="text-xs opacity-90">Add or remove drivers</div>
+            <div className="font-medium">Chauffeurs Beheren</div>
+            <div className="text-xs opacity-90">Chauffeurs toevoegen of verwijderen</div>
           </div>
         </Button>
       </div>

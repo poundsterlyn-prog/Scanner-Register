@@ -20,7 +20,7 @@ export default function SummaryCards({
             <Package className="w-6 h-6 text-primary" />
           </div>
           <div>
-            <p className="text-sm text-muted-foreground">Total Assigned</p>
+            <p className="text-sm text-muted-foreground">Totaal Toegewezen</p>
             <p className="text-2xl font-semibold" data-testid="text-total-assigned">
               {totalAssigned}
             </p>
@@ -34,7 +34,7 @@ export default function SummaryCards({
             <CheckCircle className="w-6 h-6 text-chart-2" />
           </div>
           <div>
-            <p className="text-sm text-muted-foreground">Total Returned</p>
+            <p className="text-sm text-muted-foreground">Totaal Ingeleverd</p>
             <p className="text-2xl font-semibold" data-testid="text-total-returned">
               {totalReturned}
             </p>
@@ -48,7 +48,7 @@ export default function SummaryCards({
             <AlertCircle className="w-6 h-6 text-destructive" />
           </div>
           <div>
-            <p className="text-sm text-muted-foreground">Pending Returns</p>
+            <p className="text-sm text-muted-foreground">Wachtend op Inlevering</p>
             <p className="text-2xl font-semibold" data-testid="text-pending-returns">
               {pending}
             </p>

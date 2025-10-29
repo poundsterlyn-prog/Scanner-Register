@@ -63,10 +63,10 @@ export default function Dashboard() {
     "Emma Wilson",
   ]);
 
-  const currentDate = new Date().toLocaleDateString("en-US", {
+  const currentDate = new Date().toLocaleDateString("nl-NL", {
     weekday: "long",
-    month: "long",
     day: "numeric",
+    month: "long",
     year: "numeric",
   });
 
@@ -80,8 +80,8 @@ export default function Dashboard() {
     const scanner = scanners.find((s) => s.id === barcode);
     if (!scanner) {
       toast({
-        title: "Scanner Not Found",
-        description: `Scanner ${barcode} is not registered in the system.`,
+        title: "Scanner Niet Gevonden",
+        description: `Scanner ${barcode} is niet geregistreerd in het systeem.`,
         variant: "destructive",
       });
       return;
@@ -89,8 +89,8 @@ export default function Dashboard() {
 
     if (scanner.status === "assigned" || scanner.status === "overdue") {
       toast({
-        title: "Already Assigned",
-        description: `Scanner ${barcode} is already assigned to ${scanner.driver}.`,
+        title: "Al Toegewezen",
+        description: `Scanner ${barcode} is al toegewezen aan ${scanner.driver}.`,
         variant: "destructive",
       });
       return;
@@ -102,7 +102,7 @@ export default function Dashboard() {
 
   const handleAssignDriver = (driverName: string) => {
     const now = new Date();
-    const timeString = now.toLocaleTimeString("en-US", {
+    const timeString = now.toLocaleTimeString("nl-NL", {
       hour: "2-digit",
       minute: "2-digit",
     });
@@ -116,8 +116,8 @@ export default function Dashboard() {
     );
 
     toast({
-      title: "Assignment Successful",
-      description: `Scanner ${scannedId} assigned to ${driverName}`,
+      title: "Toewijzing Succesvol",
+      description: `Scanner ${scannedId} toegewezen aan ${driverName}`,
     });
 
     setScannedId("");
@@ -129,26 +129,26 @@ export default function Dashboard() {
     if (!scanner) {
       return {
         valid: false,
-        message: "Scanner not found in system",
+        message: "Scanner niet gevonden in systeem",
       };
     }
 
     if (scanner.status !== "assigned" && scanner.status !== "overdue") {
       return {
         valid: false,
-        message: "Not currently assigned",
+        message: "Niet momenteel toegewezen",
       };
     }
 
     return {
       valid: true,
-      message: "Scanner marked for return",
+      message: "Scanner gemarkeerd voor inlevering",
     };
   };
 
   const handleBatchReturn = (scannerIds: string[]) => {
     const now = new Date();
-    const timeString = now.toLocaleTimeString("en-US", {
+    const timeString = now.toLocaleTimeString("nl-NL", {
       hour: "2-digit",
       minute: "2-digit",
     });
@@ -162,8 +162,8 @@ export default function Dashboard() {
     );
 
     toast({
-      title: "Return Successful",
-      description: `${scannerIds.length} scanner(s) marked as returned`,
+      title: "Inlevering Succesvol",
+      description: `${scannerIds.length} scanner(s) gemarkeerd als ingeleverd`,
     });
 
     setViewMode("dashboard");
@@ -172,8 +172,8 @@ export default function Dashboard() {
   const handleRegisterScanner = (barcode: string) => {
     if (scanners.find((s) => s.id === barcode)) {
       toast({
-        title: "Already Registered",
-        description: `Scanner ${barcode} is already in the system.`,
+        title: "Al Geregistreerd",
+        description: `Scanner ${barcode} is al in het systeem.`,
         variant: "destructive",
       });
       return;
@@ -182,8 +182,8 @@ export default function Dashboard() {
     setScanners((prev) => [...prev, { id: barcode, status: "available" }]);
 
     toast({
-      title: "Scanner Registered",
-      description: `Scanner ${barcode} added to inventory`,
+      title: "Scanner Geregistreerd",
+      description: `Scanner ${barcode} toegevoegd aan inventaris`,
     });
   };
 
@@ -191,15 +191,15 @@ export default function Dashboard() {
     const doc = new jsPDF();
 
     doc.setFontSize(18);
-    doc.text("Daily Scanner Report", 14, 20);
+    doc.text("Dagelijks Scanner Rapport", 14, 20);
 
     doc.setFontSize(11);
     doc.text(currentDate, 14, 28);
 
     doc.setFontSize(12);
-    doc.text(`Total Assigned: ${assignedCount + returnedCount}`, 14, 38);
-    doc.text(`Total Returned: ${returnedCount}`, 14, 45);
-    doc.text(`Pending Returns: ${pendingCount}`, 14, 52);
+    doc.text(`Totaal Toegewezen: ${assignedCount + returnedCount}`, 14, 38);
+    doc.text(`Totaal Ingeleverd: ${returnedCount}`, 14, 45);
+    doc.text(`Wachtend op Inlevering: ${pendingCount}`, 14, 52);
 
     const assignedScanners = scanners.filter(
       (s) => s.status === "assigned" || s.status === "returned" || s.status === "overdue"
@@ -210,12 +210,12 @@ export default function Dashboard() {
       s.driver || "-",
       s.assignedTime || "-",
       s.returnTime || "-",
-      s.status === "returned" ? "Returned" : "Pending",
+      s.status === "returned" ? "Ingeleverd" : "Wachtend",
     ]);
 
     autoTable(doc, {
       startY: 60,
-      head: [["Scanner ID", "Driver", "Assigned", "Returned", "Status"]],
+      head: [["Scanner ID", "Chauffeur", "Toegewezen", "Ingeleverd", "Status"]],
       body: tableData,
       didParseCell: (data) => {
         if (data.row.index >= 0 && data.section === "body") {
@@ -227,11 +227,11 @@ export default function Dashboard() {
       },
     });
 
-    doc.save(`scanner-report-${new Date().toISOString().split("T")[0]}.pdf`);
+    doc.save(`scanner-rapport-${new Date().toISOString().split("T")[0]}.pdf`);
 
     toast({
-      title: "Report Generated",
-      description: "PDF report has been downloaded",
+      title: "Rapport Gegenereerd",
+      description: "PDF rapport is gedownload",
     });
   };
 
@@ -240,8 +240,8 @@ export default function Dashboard() {
       case "scan-assign":
         return (
           <BarcodeScanner
-            title="Scan Scanner to Assign"
-            description="Scan with Zebra scanner or use camera"
+            title="Scan Scanner om Toe te Wijzen"
+            description="Scan met Zebra scanner of gebruik camera"
             onScan={handleScanForAssignment}
             onCancel={() => setViewMode("dashboard")}
           />
@@ -250,7 +250,7 @@ export default function Dashboard() {
       case "assign-driver":
         return (
           <Card className="p-6">
-            <h2 className="text-2xl font-semibold mb-4">Assign to Driver</h2>
+            <h2 className="text-2xl font-semibold mb-4">Toewijzen aan Chauffeur</h2>
             <DriverSelector
               scannerId={scannedId}
               drivers={drivers}
@@ -275,8 +275,8 @@ export default function Dashboard() {
       case "register":
         return (
           <BarcodeScanner
-            title="Register New Scanner"
-            description="Scan with Zebra scanner or use camera to add to inventory"
+            title="Nieuwe Scanner Registreren"
+            description="Scan met Zebra scanner of gebruik camera om toe te voegen aan inventaris"
             onScan={handleRegisterScanner}
             onCancel={() => setViewMode("dashboard")}
           />
@@ -286,7 +286,7 @@ export default function Dashboard() {
         return (
           <div className="space-y-4">
             <div className="flex items-center justify-between">
-              <h2 className="text-2xl font-semibold">Daily Report</h2>
+              <h2 className="text-2xl font-semibold">Dagelijks Rapport</h2>
               <Button onClick={handleGeneratePDF} data-testid="button-download-pdf">
                 <Download className="w-4 h-4 mr-2" />
                 Download PDF
@@ -323,7 +323,7 @@ export default function Dashboard() {
               className="w-full"
               data-testid="button-back-to-dashboard"
             >
-              Back to Dashboard
+              Terug naar Dashboard
             </Button>
           </div>
         );
@@ -336,15 +336,15 @@ export default function Dashboard() {
               onAddDriver={(name) => {
                 setDrivers([...drivers, name]);
                 toast({
-                  title: "Driver Added",
-                  description: `${name} has been added to the driver list`,
+                  title: "Chauffeur Toegevoegd",
+                  description: `${name} is toegevoegd aan de chauffeurlijst`,
                 });
               }}
               onRemoveDriver={(name) => {
                 setDrivers(drivers.filter((d) => d !== name));
                 toast({
-                  title: "Driver Removed",
-                  description: `${name} has been removed from the driver list`,
+                  title: "Chauffeur Verwijderd",
+                  description: `${name} is verwijderd van de chauffeurlijst`,
                 });
               }}
             />
@@ -355,7 +355,7 @@ export default function Dashboard() {
               className="w-full"
               data-testid="button-back-from-drivers"
             >
-              Back to Dashboard
+              Terug naar Dashboard
             </Button>
           </div>
         );
@@ -378,7 +378,7 @@ export default function Dashboard() {
             />
 
             <div className="space-y-4">
-              <h2 className="text-lg font-medium">All Scanners</h2>
+              <h2 className="text-lg font-medium">Alle Scanners</h2>
               <div className="grid gap-3">
                 {scanners.map((scanner) => (
                   <ScannerCard key={scanner.id} {...scanner} scannerId={scanner.id} />
@@ -396,8 +396,8 @@ export default function Dashboard() {
         currentDate={currentDate}
         onLogout={() => {
           toast({
-            title: "Logged Out",
-            description: "Session ended successfully",
+            title: "Uitgelogd",
+            description: "Sessie succesvol beëindigd",
           });
         }}
       />

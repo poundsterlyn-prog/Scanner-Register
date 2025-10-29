@@ -37,15 +37,15 @@ export default function ScannerCard({
   const getStatusText = () => {
     switch (status) {
       case "available":
-        return "Available";
+        return "Beschikbaar";
       case "assigned":
-        return "Assigned";
+        return "Toegewezen";
       case "returned":
-        return "Returned";
+        return "Ingeleverd";
       case "overdue":
-        return "Overdue";
+        return "Te laat";
       default:
-        return "Unknown";
+        return "Onbekend";
     }
   };
 
@@ -83,7 +83,7 @@ export default function ScannerCard({
           {returnTime && (
             <div className="flex items-center gap-2 text-sm text-muted-foreground">
               <Clock className="w-4 h-4" />
-              <span data-testid={`text-return-time-${scannerId}`}>Returned: {returnTime}</span>
+              <span data-testid={`text-return-time-${scannerId}`}>Ingeleverd: {returnTime}</span>
             </div>
           )}
         </div>

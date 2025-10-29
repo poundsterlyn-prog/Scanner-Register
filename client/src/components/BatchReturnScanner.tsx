@@ -76,7 +76,7 @@ export default function BatchReturnScanner({
         {
           scannerId: trimmedId,
           status: "error",
-          message: "Already scanned",
+          message: "Al gescand",
           timestamp: new Date().toLocaleTimeString(),
         },
         ...prev,
@@ -84,7 +84,7 @@ export default function BatchReturnScanner({
       return;
     }
 
-    let result = { valid: true, message: "Scanner marked for return" };
+    let result = { valid: true, message: "Scanner gemarkeerd voor inlevering" };
     if (validateScanner) {
       result = validateScanner(trimmedId);
     }
@@ -133,9 +133,9 @@ export default function BatchReturnScanner({
     <div className="space-y-4">
       <div className="flex items-center justify-between">
         <div>
-          <h2 className="text-2xl font-semibold">Batch Return Scanners</h2>
+          <h2 className="text-2xl font-semibold">Meerdere Scanners Inleveren</h2>
           <p className="text-sm text-muted-foreground mt-1">
-            Scan multiple scanners to mark as returned
+            Scan meerdere scanners om als ingeleverd te markeren
           </p>
         </div>
         {onCancel && (
@@ -163,11 +163,11 @@ export default function BatchReturnScanner({
                   value={manualInput}
                   onChange={(e) => setManualInput(e.target.value)}
                   onKeyDown={handleKeyDown}
-                  placeholder="Scan with Zebra scanner or type manually"
+                  placeholder="Scan met Zebra scanner of typ handmatig"
                   data-testid="input-batch-scanner"
                 />
                 <p className="text-xs text-muted-foreground">
-                  Press Enter or scan to add each scanner
+                  Druk op Enter of scan om elke scanner toe te voegen
                 </p>
               </div>
             </form>
@@ -180,7 +180,7 @@ export default function BatchReturnScanner({
                 data-testid="button-use-camera-batch"
               >
                 <Camera className="w-4 h-4 mr-2" />
-                Use Camera Instead
+                Gebruik Camera
               </Button>
             </div>
           </div>
@@ -193,7 +193,7 @@ export default function BatchReturnScanner({
                 onClick={() => setShowCamera(false)}
                 data-testid="button-use-keyboard-batch"
               >
-                Use Keyboard Input
+                Gebruik Toetsenbord
               </Button>
             </div>
           </div>
@@ -204,10 +204,10 @@ export default function BatchReturnScanner({
         <Card className="p-6">
           <div className="flex items-center justify-between mb-4">
             <h3 className="text-lg font-medium">
-              Scanned Items ({successCount} successful)
+              Gescande Items ({successCount} succesvol)
             </h3>
             <Badge variant="secondary" data-testid="text-scanned-count">
-              {scannedItems.length} total
+              {scannedItems.length} totaal
             </Badge>
           </div>
 
@@ -255,11 +255,11 @@ export default function BatchReturnScanner({
           className="flex-1"
           data-testid="button-complete-batch"
         >
-          Complete Return ({successCount})
+          Inlevering Voltooien ({successCount})
         </Button>
         {onCancel && (
           <Button variant="outline" onClick={onCancel} data-testid="button-cancel-batch-bottom">
-            Cancel
+            Annuleren
           </Button>
         )}
       </div>
