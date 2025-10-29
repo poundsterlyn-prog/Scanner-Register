@@ -20,8 +20,8 @@ export default function BarcodeScanner({
   description = "Point camera at barcode or enter manually",
 }: BarcodeScannerProps) {
   const [manualInput, setManualInput] = useState("");
-  const [showManualInput, setShowManualInput] = useState(false);
-  const [showCamera, setShowCamera] = useState(true);
+  const [showManualInput, setShowManualInput] = useState(true);
+  const [showCamera, setShowCamera] = useState(false);
   const scannerRef = useRef<Html5QrcodeScanner | null>(null);
 
   useEffect(() => {
@@ -92,25 +92,6 @@ export default function BarcodeScanner({
       </div>
 
       <Card className="p-6">
-        {showCamera && (
-          <div className="space-y-4">
-            <div id="barcode-reader" className="w-full" data-testid="camera-viewfinder"></div>
-            <div className="flex justify-center">
-              <Button
-                variant="outline"
-                onClick={() => {
-                  setShowCamera(false);
-                  setShowManualInput(true);
-                }}
-                data-testid="button-manual-input"
-              >
-                <Keyboard className="w-4 h-4 mr-2" />
-                Enter Manually
-              </Button>
-            </div>
-          </div>
-        )}
-
         {showManualInput && (
           <div className="space-y-4">
             <form onSubmit={handleManualSubmit}>
@@ -148,6 +129,25 @@ export default function BarcodeScanner({
                 </Button>
               </div>
             </form>
+          </div>
+        )}
+
+        {showCamera && (
+          <div className="space-y-4">
+            <div id="barcode-reader" className="w-full" data-testid="camera-viewfinder"></div>
+            <div className="flex justify-center">
+              <Button
+                variant="outline"
+                onClick={() => {
+                  setShowCamera(false);
+                  setShowManualInput(true);
+                }}
+                data-testid="button-manual-input"
+              >
+                <Keyboard className="w-4 h-4 mr-2" />
+                Enter Manually
+              </Button>
+            </div>
           </div>
         )}
       </Card>

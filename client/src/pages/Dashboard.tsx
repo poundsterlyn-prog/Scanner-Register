@@ -4,6 +4,7 @@ import QuickActions from "@/components/QuickActions";
 import SummaryCards from "@/components/SummaryCards";
 import ScannerCard from "@/components/ScannerCard";
 import BarcodeScanner from "@/components/BarcodeScanner";
+import BatchReturnScanner from "@/components/BatchReturnScanner";
 import DriverSelector from "@/components/DriverSelector";
 import ReportTable from "@/components/ReportTable";
 import DriverManagement from "@/components/DriverManagement";
@@ -123,26 +124,29 @@ export default function Dashboard() {
     setViewMode("dashboard");
   };
 
-  const handleScanForReturn = (barcode: string) => {
+  const validateScannerForReturn = (barcode: string) => {
     const scanner = scanners.find((s) => s.id === barcode);
     if (!scanner) {
-      toast({
-        title: "Scanner Not Found",
-        description: `Scanner ${barcode} is not registered in the system.`,
-        variant: "destructive",
-      });
-      return;
+      return {
+        valid: false,
+        message: "Scanner not found in system",
+      };
     }
 
     if (scanner.status !== "assigned" && scanner.status !== "overdue") {
-      toast({
-        title: "Not Assigned",
-        description: `Scanner ${barcode} is not currently assigned.`,
-        variant: "destructive",
-      });
-      return;
+      return {
+        valid: false,
+        message: "Not currently assigned",
+      };
     }
 
+    return {
+      valid: true,
+      message: "Scanner marked for return",
+    };
+  };
+
+  const handleBatchReturn = (scannerIds: string[]) => {
     const now = new Date();
     const timeString = now.toLocaleTimeString("en-US", {
       hour: "2-digit",
@@ -151,13 +155,15 @@ export default function Dashboard() {
 
     setScanners((prev) =>
       prev.map((s) =>
-        s.id === barcode ? { ...s, returnTime: timeString, status: "returned" as const } : s
+        scannerIds.includes(s.id)
+          ? { ...s, returnTime: timeString, status: "returned" as const }
+          : s
       )
     );
 
     toast({
       title: "Return Successful",
-      description: `Scanner ${barcode} marked as returned`,
+      description: `${scannerIds.length} scanner(s) marked as returned`,
     });
 
     setViewMode("dashboard");
@@ -235,7 +241,7 @@ export default function Dashboard() {
         return (
           <BarcodeScanner
             title="Scan Scanner to Assign"
-            description="Point camera at scanner barcode or enter manually"
+            description="Scan with Zebra scanner or use camera"
             onScan={handleScanForAssignment}
             onCancel={() => setViewMode("dashboard")}
           />
@@ -259,11 +265,10 @@ export default function Dashboard() {
 
       case "scan-return":
         return (
-          <BarcodeScanner
-            title="Scan Scanner to Return"
-            description="Point camera at scanner barcode to mark as returned"
-            onScan={handleScanForReturn}
+          <BatchReturnScanner
+            onComplete={handleBatchReturn}
             onCancel={() => setViewMode("dashboard")}
+            validateScanner={validateScannerForReturn}
           />
         );
 
@@ -271,7 +276,7 @@ export default function Dashboard() {
         return (
           <BarcodeScanner
             title="Register New Scanner"
-            description="Scan barcode of new scanner to add to inventory"
+            description="Scan with Zebra scanner or use camera to add to inventory"
             onScan={handleRegisterScanner}
             onCancel={() => setViewMode("dashboard")}
           />
