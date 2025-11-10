@@ -124,6 +124,9 @@ export const translations = {
     
     // Times
     returnedPrefix: "Returned",
+    
+    // Loading
+    loading: "Loading",
   },
   nl: {
     // Login
@@ -248,6 +251,9 @@ export const translations = {
     
     // Times
     returnedPrefix: "Ingeleverd",
+    
+    // Loading
+    loading: "Laden",
   },
 };
 

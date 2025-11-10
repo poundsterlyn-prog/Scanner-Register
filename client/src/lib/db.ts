@@ -101,10 +101,13 @@ export const assignmentStorage = {
   },
 };
 
-// Utility to get today's date in YYYY-MM-DD format
+// Utility to get today's date in YYYY-MM-DD format (using local timezone)
 export function getTodayDate(): string {
   const today = new Date();
-  return today.toISOString().split("T")[0];
+  const year = today.getFullYear();
+  const month = String(today.getMonth() + 1).padStart(2, '0');
+  const day = String(today.getDate()).padStart(2, '0');
+  return `${year}-${month}-${day}`;
 }
 
 // Initialize database with default data if empty
@@ -134,6 +137,18 @@ export async function initializeDatabase(): Promise<void> {
   }
 
   // Clean up old assignments (keep only today's)
+  await performDailyCleanup();
+}
+
+// Daily cleanup - removes assignments from previous days
+export async function performDailyCleanup(): Promise<void> {
   const today = getTodayDate();
-  await assignmentStorage.deletePreviousDays(today);
+  const lastCleanup = localStorage.getItem("lastCleanupDate");
+
+  // If it's a new day, clean up old assignments
+  if (lastCleanup !== today) {
+    await assignmentStorage.deletePreviousDays(today);
+    localStorage.setItem("lastCleanupDate", today);
+    console.log(`Daily cleanup performed: removed assignments before ${today}`);
+  }
 }

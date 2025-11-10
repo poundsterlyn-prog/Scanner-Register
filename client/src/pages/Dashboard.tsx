@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import TopBar from "@/components/TopBar";
 import QuickActions from "@/components/QuickActions";
 import SummaryCards from "@/components/SummaryCards";
@@ -15,10 +15,19 @@ import { useLanguage } from "@/contexts/LanguageContext";
 import { Download } from "lucide-react";
 import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";
+import {
+  db,
+  scannerStorage,
+  driverStorage,
+  assignmentStorage,
+  getTodayDate,
+  initializeDatabase,
+} from "@/lib/db";
+import type { Scanner, Driver, Assignment, ScannerStatus } from "@shared/schema";
+import { useLiveQuery } from "dexie-react-hooks";
 
-type ScannerStatus = "available" | "assigned" | "returned" | "overdue";
-
-interface Scanner {
+// Combined view for display
+interface ScannerView {
   id: string;
   driver?: string;
   assignedTime?: string;
@@ -40,30 +49,21 @@ export default function Dashboard() {
   const { t, language } = useLanguage();
   const [viewMode, setViewMode] = useState<ViewMode>("dashboard");
   const [scannedId, setScannedId] = useState<string>("");
+  const [isInitialized, setIsInitialized] = useState(false);
 
-  const [scanners, setScanners] = useState<Scanner[]>([
-    { id: "SC-001234", status: "available" },
-    {
-      id: "SC-002345",
-      driver: "John Smith",
-      assignedTime: "08:30 AM",
-      status: "assigned",
-    },
-    {
-      id: "SC-003456",
-      driver: "Sarah Johnson",
-      assignedTime: "09:15 AM",
-      returnTime: "04:45 PM",
-      status: "returned",
-    },
-  ]);
+  const today = getTodayDate();
 
-  const [drivers, setDrivers] = useState<string[]>([
-    "John Smith",
-    "Sarah Johnson",
-    "Mike Davis",
-    "Emma Wilson",
-  ]);
+  // Live queries from IndexedDB
+  const scanners = useLiveQuery(() => scannerStorage.getAll(), []) ?? [];
+  const drivers = useLiveQuery(() => driverStorage.getAll(), []) ?? [];
+  const assignments = useLiveQuery(() => assignmentStorage.getByDate(today), [today]) ?? [];
+
+  // Initialize database on mount
+  useEffect(() => {
+    initializeDatabase().then(() => {
+      setIsInitialized(true);
+    });
+  }, []);
 
   const currentDate = new Date().toLocaleDateString(language === "nl" ? "nl-NL" : "en-US", {
     weekday: "long",
@@ -72,14 +72,32 @@ export default function Dashboard() {
     year: "numeric",
   });
 
-  const assignedCount = scanners.filter((s) => s.status === "assigned").length;
-  const returnedCount = scanners.filter((s) => s.status === "returned").length;
-  const pendingCount = scanners.filter(
+  // Combine scanners with their assignments for display
+  const scannerViews: ScannerView[] = scanners.map((scanner) => {
+    const assignment = assignments.find((a) => a.scannerId === scanner.id);
+    if (assignment) {
+      return {
+        id: scanner.id,
+        driver: assignment.driverName,
+        assignedTime: assignment.assignedTime,
+        returnTime: assignment.returnTime,
+        status: assignment.status,
+      };
+    }
+    return {
+      id: scanner.id,
+      status: "available" as const,
+    };
+  });
+
+  const assignedCount = scannerViews.filter((s) => s.status === "assigned").length;
+  const returnedCount = scannerViews.filter((s) => s.status === "returned").length;
+  const pendingCount = scannerViews.filter(
     (s) => s.status === "assigned" || s.status === "overdue"
   ).length;
 
-  const handleScanForAssignment = (barcode: string) => {
-    const scanner = scanners.find((s) => s.id === barcode);
+  const handleScanForAssignment = async (barcode: string) => {
+    const scanner = await scannerStorage.getById(barcode);
     if (!scanner) {
       toast({
         title: t("scannerNotFound"),
@@ -89,10 +107,12 @@ export default function Dashboard() {
       return;
     }
 
-    if (scanner.status === "assigned" || scanner.status === "overdue") {
+    // Check if already assigned today
+    const existingAssignment = assignments.find((a) => a.scannerId === barcode);
+    if (existingAssignment && existingAssignment.status !== "returned") {
       toast({
         title: t("alreadyAssigned"),
-        description: `${t("scannerId")} ${barcode} ${t("alreadyAssignedTo")} ${scanner.driver}.`,
+        description: `${t("scannerId")} ${barcode} ${t("alreadyAssignedTo")} ${existingAssignment.driverName}.`,
         variant: "destructive",
       });
       return;
@@ -102,20 +122,23 @@ export default function Dashboard() {
     setViewMode("assign-driver");
   };
 
-  const handleAssignDriver = (driverName: string) => {
+  const handleAssignDriver = async (driverName: string) => {
     const now = new Date();
     const timeString = now.toLocaleTimeString(language === "nl" ? "nl-NL" : "en-US", {
       hour: "2-digit",
       minute: "2-digit",
     });
 
-    setScanners((prev) =>
-      prev.map((s) =>
-        s.id === scannedId
-          ? { ...s, driver: driverName, assignedTime: timeString, status: "assigned" as const }
-          : s
-      )
-    );
+    const assignment: Assignment = {
+      id: `${scannedId}-${Date.now()}`,
+      scannerId: scannedId,
+      driverName: driverName,
+      assignedTime: timeString,
+      status: "assigned",
+      date: today,
+    };
+
+    await assignmentStorage.add(assignment);
 
     toast({
       title: t("assignmentSuccessful"),
@@ -127,15 +150,15 @@ export default function Dashboard() {
   };
 
   const validateScannerForReturn = (barcode: string) => {
-    const scanner = scanners.find((s) => s.id === barcode);
-    if (!scanner) {
+    const assignment = assignments.find((a) => a.scannerId === barcode);
+    if (!assignment) {
       return {
         valid: false,
         message: t("scannerNotFoundInSystem"),
       };
     }
 
-    if (scanner.status !== "assigned" && scanner.status !== "overdue") {
+    if (assignment.status === "returned") {
       return {
         valid: false,
         message: t("notCurrentlyAssigned"),
@@ -148,20 +171,23 @@ export default function Dashboard() {
     };
   };
 
-  const handleBatchReturn = (scannerIds: string[]) => {
+  const handleBatchReturn = async (scannerIds: string[]) => {
     const now = new Date();
     const timeString = now.toLocaleTimeString(language === "nl" ? "nl-NL" : "en-US", {
       hour: "2-digit",
       minute: "2-digit",
     });
 
-    setScanners((prev) =>
-      prev.map((s) =>
-        scannerIds.includes(s.id)
-          ? { ...s, returnTime: timeString, status: "returned" as const }
-          : s
-      )
-    );
+    // Update each assignment
+    for (const scannerId of scannerIds) {
+      const assignment = assignments.find((a) => a.scannerId === scannerId);
+      if (assignment) {
+        await assignmentStorage.update(assignment.id, {
+          returnTime: timeString,
+          status: "returned",
+        });
+      }
+    }
 
     toast({
       title: t("returnSuccessful"),
@@ -171,8 +197,9 @@ export default function Dashboard() {
     setViewMode("dashboard");
   };
 
-  const handleRegisterScanner = (barcode: string) => {
-    if (scanners.find((s) => s.id === barcode)) {
+  const handleRegisterScanner = async (barcode: string) => {
+    const exists = await scannerStorage.exists(barcode);
+    if (exists) {
       toast({
         title: t("alreadyRegistered"),
         description: `${t("scannerId")} ${barcode} ${t("alreadyInSystem")}.`,
@@ -181,11 +208,49 @@ export default function Dashboard() {
       return;
     }
 
-    setScanners((prev) => [...prev, { id: barcode, status: "available" }]);
+    const scanner: Scanner = {
+      id: barcode,
+      registeredAt: new Date().toISOString(),
+    };
+
+    await scannerStorage.add(scanner);
 
     toast({
       title: t("scannerRegistered"),
       description: `${t("scannerId")} ${barcode} ${t("addedToInventory")}`,
+    });
+  };
+
+  const handleAddDriver = async (name: string) => {
+    const exists = await driverStorage.exists(name);
+    if (exists) {
+      toast({
+        title: t("alreadyRegistered"),
+        description: `${name} ${t("alreadyInSystem")}.`,
+        variant: "destructive",
+      });
+      return;
+    }
+
+    const driver: Driver = {
+      name: name,
+      addedAt: new Date().toISOString(),
+    };
+
+    await driverStorage.add(driver);
+
+    toast({
+      title: t("driverAdded"),
+      description: `${name} ${t("addedToDriverList")}`,
+    });
+  };
+
+  const handleRemoveDriver = async (name: string) => {
+    await driverStorage.delete(name);
+
+    toast({
+      title: t("driverRemoved"),
+      description: `${name} ${t("removedFromDriverList")}`,
     });
   };
 
@@ -203,7 +268,7 @@ export default function Dashboard() {
     doc.text(`${t("totalReturned")}: ${returnedCount}`, 14, 45);
     doc.text(`${t("pendingReturns")}: ${pendingCount}`, 14, 52);
 
-    const assignedScanners = scanners.filter(
+    const assignedScanners = scannerViews.filter(
       (s) => s.status === "assigned" || s.status === "returned" || s.status === "overdue"
     );
 
@@ -230,7 +295,7 @@ export default function Dashboard() {
     });
 
     const filename = language === "nl" ? "scanner-rapport" : "scanner-report";
-    doc.save(`${filename}-${new Date().toISOString().split("T")[0]}.pdf`);
+    doc.save(`${filename}-${today}.pdf`);
 
     toast({
       title: t("reportGenerated"),
@@ -256,7 +321,7 @@ export default function Dashboard() {
             <h2 className="text-2xl font-semibold mb-4">{t("assignToDriver")}</h2>
             <DriverSelector
               scannerId={scannedId}
-              drivers={drivers}
+              drivers={drivers.map((d) => d.name)}
               onAssign={handleAssignDriver}
               onCancel={() => {
                 setScannedId("");
@@ -304,7 +369,7 @@ export default function Dashboard() {
 
             <ReportTable
               date={currentDate}
-              entries={scanners
+              entries={scannerViews
                 .filter(
                   (s) =>
                     s.status === "assigned" ||
@@ -335,21 +400,9 @@ export default function Dashboard() {
         return (
           <div className="space-y-4">
             <DriverManagement
-              drivers={drivers}
-              onAddDriver={(name) => {
-                setDrivers([...drivers, name]);
-                toast({
-                  title: t("driverAdded"),
-                  description: `${name} ${t("addedToDriverList")}`,
-                });
-              }}
-              onRemoveDriver={(name) => {
-                setDrivers(drivers.filter((d) => d !== name));
-                toast({
-                  title: t("driverRemoved"),
-                  description: `${name} ${t("removedFromDriverList")}`,
-                });
-              }}
+              drivers={drivers.map((d) => d.name)}
+              onAddDriver={handleAddDriver}
+              onRemoveDriver={handleRemoveDriver}
             />
 
             <Button
@@ -383,7 +436,7 @@ export default function Dashboard() {
             <div className="space-y-4">
               <h2 className="text-lg font-medium">{t("allScanners")}</h2>
               <div className="grid gap-3">
-                {scanners.map((scanner) => (
+                {scannerViews.map((scanner) => (
                   <ScannerCard key={scanner.id} {...scanner} scannerId={scanner.id} />
                 ))}
               </div>
@@ -392,6 +445,17 @@ export default function Dashboard() {
         );
     }
   };
+
+  if (!isInitialized) {
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4"></div>
+          <p className="text-muted-foreground">{t("loading")}...</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-background">
