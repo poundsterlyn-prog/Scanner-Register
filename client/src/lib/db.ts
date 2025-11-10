@@ -127,7 +127,9 @@ export function getLast7DaysOptions(language: string): { value: string; label: s
   const dates = [];
   for (let i = 0; i < 7; i++) {
     const dateStr = getDateDaysAgo(i);
-    const date = new Date(dateStr);
+    // Parse date in local time by constructing from components
+    const [year, month, day] = dateStr.split('-').map(Number);
+    const date = new Date(year, month - 1, day);
     const label = date.toLocaleDateString(language === "nl" ? "nl-NL" : "en-US", {
       weekday: "short",
       month: "short",
@@ -144,19 +146,20 @@ export function getLast7DaysOptions(language: string): { value: string; label: s
 
 // Initialize database and perform daily cleanup
 export async function initializeDatabase(): Promise<void> {
-  // Clean up old assignments (keep only today's)
+  // Clean up old assignments (keep last 7 days for historical reports)
   await performDailyCleanup();
 }
 
-// Daily cleanup - removes assignments from previous days
+// Daily cleanup - removes assignments older than 7 days
 export async function performDailyCleanup(): Promise<void> {
   const today = getTodayDate();
   const lastCleanup = localStorage.getItem("lastCleanupDate");
 
-  // If it's a new day, clean up old assignments
+  // If it's a new day, clean up assignments older than 7 days
   if (lastCleanup !== today) {
-    await assignmentStorage.deletePreviousDays(today);
+    const sevenDaysAgo = getDateDaysAgo(7);
+    await db.assignments.where("date").below(sevenDaysAgo).delete();
     localStorage.setItem("lastCleanupDate", today);
-    console.log(`Daily cleanup performed: removed assignments before ${today}`);
+    console.log(`Daily cleanup performed: removed assignments before ${sevenDaysAgo}`);
   }
 }

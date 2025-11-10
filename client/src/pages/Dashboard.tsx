@@ -314,7 +314,10 @@ export default function Dashboard() {
   const handleGeneratePDF = () => {
     const doc = new jsPDF();
 
-    const reportDate = new Date(selectedReportDate).toLocaleDateString(language === "nl" ? "nl-NL" : "en-US", {
+    // Parse date in local time to avoid timezone issues
+    const [year, month, day] = selectedReportDate.split('-').map(Number);
+    const reportDate = new Date(year, month - 1, day);
+    const reportDateFormatted = reportDate.toLocaleDateString(language === "nl" ? "nl-NL" : "en-US", {
       weekday: "long",
       day: "numeric",
       month: "long",
@@ -325,7 +328,7 @@ export default function Dashboard() {
     doc.text(t("dailyScannerReport"), 14, 20);
 
     doc.setFontSize(11);
-    doc.text(reportDate, 14, 28);
+    doc.text(reportDateFormatted, 14, 28);
 
     doc.setFontSize(12);
     doc.text(`${t("totalAssigned")}: ${reportAssignedCount + reportReturnedCount}`, 14, 38);
@@ -419,7 +422,10 @@ export default function Dashboard() {
         );
 
       case "report":
-        const reportDateFormatted = new Date(selectedReportDate).toLocaleDateString(language === "nl" ? "nl-NL" : "en-US", {
+        // Parse date in local time to avoid timezone issues
+        const [year, month, day] = selectedReportDate.split('-').map(Number);
+        const reportDate = new Date(year, month - 1, day);
+        const reportDateFormatted = reportDate.toLocaleDateString(language === "nl" ? "nl-NL" : "en-US", {
           weekday: "long",
           day: "numeric",
           month: "long",
