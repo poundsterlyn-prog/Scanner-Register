@@ -3,7 +3,7 @@ export type Language = "en" | "nl";
 export const translations = {
   en: {
     // Login
-    loginTitle: "Scanner Tracker",
+    loginTitle: "Scanner Register",
     loginSubtitle: "Delivery Scanner Management System",
     username: "Username",
     password: "Password",
@@ -147,7 +147,7 @@ export const translations = {
   },
   nl: {
     // Login
-    loginTitle: "Scanner Tracker",
+    loginTitle: "Scanner Register",
     loginSubtitle: "Bezorgscanner Beheersysteem",
     username: "Gebruikersnaam",
     password: "Wachtwoord",

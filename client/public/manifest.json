@@ -1,6 +1,6 @@
 {
-  "name": "Scanner Tracker",
-  "short_name": "Scanner Tracker",
+  "name": "Scanner Register",
+  "short_name": "Scanner Register",
   "description": "Delivery scanner assignment tracking system",
   "start_url": "/",
   "display": "standalone",

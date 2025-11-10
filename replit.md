@@ -1,8 +1,8 @@
-# Scanner Tracker - Delivery Scanner Management System
+# Scanner Register - Delivery Scanner Management System
 
 ## Overview
 
-Scanner Tracker is a Progressive Web Application (PWA) designed for managing delivery scanner assignments in warehouse and logistics operations. The system enables staff to track scanner assignments to drivers, manage returns, and generate daily reports. Built with a mobile-first approach, it prioritizes efficiency for daily barcode scanning operations with offline-capable functionality.
+Scanner Register is a Progressive Web Application (PWA) designed for managing delivery scanner assignments in warehouse and logistics operations. The system enables staff to track scanner assignments to drivers, manage returns, and generate daily reports. Built with a mobile-first approach, it prioritizes efficiency for daily barcode scanning operations with offline-capable functionality.
 
 ## Recent Changes
 
