@@ -1,18 +1,43 @@
-import { sql } from "drizzle-orm";
-import { pgTable, text, varchar } from "drizzle-orm/pg-core";
-import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod";
 
-export const users = pgTable("users", {
-  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
-  username: text("username").notNull().unique(),
-  password: text("password").notNull(),
+// Scanner status enum
+export const scannerStatusEnum = z.enum(["available", "assigned", "returned", "overdue"]);
+export type ScannerStatus = z.infer<typeof scannerStatusEnum>;
+
+// Scanner schema - permanent data
+export const scannerSchema = z.object({
+  id: z.string(),
+  registeredAt: z.string(),
 });
 
-export const insertUserSchema = createInsertSchema(users).pick({
-  username: true,
-  password: true,
+export type Scanner = z.infer<typeof scannerSchema>;
+
+// Driver schema - permanent data
+export const driverSchema = z.object({
+  name: z.string(),
+  addedAt: z.string(),
 });
 
-export type InsertUser = z.infer<typeof insertUserSchema>;
-export type User = typeof users.$inferSelect;
+export type Driver = z.infer<typeof driverSchema>;
+
+// Assignment schema - daily data (resets each day)
+export const assignmentSchema = z.object({
+  id: z.string(), // unique assignment ID
+  scannerId: z.string(),
+  driverName: z.string(),
+  assignedTime: z.string(),
+  returnTime: z.string().optional(),
+  status: scannerStatusEnum,
+  date: z.string(), // YYYY-MM-DD format for daily grouping
+});
+
+export type Assignment = z.infer<typeof assignmentSchema>;
+
+// Insert schemas (for creating new records)
+export const insertScannerSchema = scannerSchema.omit({ registeredAt: true });
+export const insertDriverSchema = driverSchema.omit({ addedAt: true });
+export const insertAssignmentSchema = assignmentSchema.omit({ id: true, status: true });
+
+export type InsertScanner = z.infer<typeof insertScannerSchema>;
+export type InsertDriver = z.infer<typeof insertDriverSchema>;
+export type InsertAssignment = z.infer<typeof insertAssignmentSchema>;
