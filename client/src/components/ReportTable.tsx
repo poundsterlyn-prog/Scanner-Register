@@ -8,6 +8,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 interface ReportEntry {
   scannerId: string;
@@ -23,10 +24,12 @@ interface ReportTableProps {
 }
 
 export default function ReportTable({ entries, date }: ReportTableProps) {
+  const { t } = useLanguage();
+
   return (
     <Card className="overflow-hidden">
       <div className="p-6 border-b">
-        <h2 className="text-xl font-semibold">Dagelijks Rapport</h2>
+        <h2 className="text-xl font-semibold">{t("dailyReport")}</h2>
         <p className="text-sm text-muted-foreground mt-1">{date}</p>
       </div>
 
@@ -34,18 +37,18 @@ export default function ReportTable({ entries, date }: ReportTableProps) {
         <Table>
           <TableHeader>
             <TableRow>
-              <TableHead>Scanner ID</TableHead>
-              <TableHead>Chauffeur</TableHead>
-              <TableHead>Toegewezen</TableHead>
-              <TableHead>Ingeleverd</TableHead>
-              <TableHead>Status</TableHead>
+              <TableHead>{t("scannerId")}</TableHead>
+              <TableHead>{t("driver")}</TableHead>
+              <TableHead>{t("assignedTime")}</TableHead>
+              <TableHead>{t("returnedTime")}</TableHead>
+              <TableHead>{t("status")}</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
             {entries.length === 0 ? (
               <TableRow>
                 <TableCell colSpan={5} className="text-center text-muted-foreground">
-                  Geen toewijzingen vandaag
+                  {t("noAssignmentsToday")}
                 </TableCell>
               </TableRow>
             ) : (
@@ -70,7 +73,7 @@ export default function ReportTable({ entries, date }: ReportTableProps) {
                       variant={entry.status === "returned" ? "outline" : "destructive"}
                       data-testid={`badge-report-status-${entry.scannerId}`}
                     >
-                      {entry.status === "returned" ? "Ingeleverd" : "Wachtend"}
+                      {entry.status === "returned" ? t("returned") : t("pending")}
                     </Badge>
                   </TableCell>
                 </TableRow>

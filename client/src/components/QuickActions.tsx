@@ -1,6 +1,7 @@
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Camera, UserPlus, PackageCheck, FileText, Settings } from "lucide-react";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 interface QuickActionsProps {
   onScanForAssignment: () => void;
@@ -17,9 +18,11 @@ export default function QuickActions({
   onViewReport,
   onManageDrivers,
 }: QuickActionsProps) {
+  const { t } = useLanguage();
+
   return (
     <Card className="p-6">
-      <h2 className="text-lg font-medium mb-4">Snelle Acties</h2>
+      <h2 className="text-lg font-medium mb-4">{t("quickActions")}</h2>
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
         <Button
           onClick={onScanForAssignment}
@@ -28,8 +31,8 @@ export default function QuickActions({
         >
           <Camera className="w-5 h-5 mr-3" />
           <div className="text-left">
-            <div className="font-medium">Scanner Toewijzen</div>
-            <div className="text-xs opacity-90">Scan om chauffeur toe te wijzen</div>
+            <div className="font-medium">{t("assignScanner")}</div>
+            <div className="text-xs opacity-90">{t("scanToAssign")}</div>
           </div>
         </Button>
 
@@ -41,8 +44,8 @@ export default function QuickActions({
         >
           <PackageCheck className="w-5 h-5 mr-3" />
           <div className="text-left">
-            <div className="font-medium">Scanner Inleveren</div>
-            <div className="text-xs opacity-90">Scan om als ingeleverd te markeren</div>
+            <div className="font-medium">{t("returnScanner")}</div>
+            <div className="text-xs opacity-90">{t("scanToReturn")}</div>
           </div>
         </Button>
 
@@ -54,8 +57,8 @@ export default function QuickActions({
         >
           <UserPlus className="w-5 h-5 mr-3" />
           <div className="text-left">
-            <div className="font-medium">Scanner Registreren</div>
-            <div className="text-xs opacity-90">Nieuwe scanner toevoegen</div>
+            <div className="font-medium">{t("registerScanner")}</div>
+            <div className="text-xs opacity-90">{t("addNewScanner")}</div>
           </div>
         </Button>
 
@@ -67,8 +70,8 @@ export default function QuickActions({
         >
           <FileText className="w-5 h-5 mr-3" />
           <div className="text-left">
-            <div className="font-medium">Rapport Bekijken</div>
-            <div className="text-xs opacity-90">Dagelijkse samenvatting</div>
+            <div className="font-medium">{t("viewReport")}</div>
+            <div className="text-xs opacity-90">{t("dailySummary")}</div>
           </div>
         </Button>
 
@@ -80,8 +83,8 @@ export default function QuickActions({
         >
           <Settings className="w-5 h-5 mr-3" />
           <div className="text-left">
-            <div className="font-medium">Chauffeurs Beheren</div>
-            <div className="text-xs opacity-90">Chauffeurs toevoegen of verwijderen</div>
+            <div className="font-medium">{t("manageDrivers")}</div>
+            <div className="text-xs opacity-90">{t("addOrRemoveDrivers")}</div>
           </div>
         </Button>
       </div>

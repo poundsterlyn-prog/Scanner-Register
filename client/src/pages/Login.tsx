@@ -1,17 +1,19 @@
 import LoginForm from "@/components/LoginForm";
 import { useLocation } from "wouter";
 import { useToast } from "@/hooks/use-toast";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 export default function Login() {
   const [, setLocation] = useLocation();
   const { toast } = useToast();
+  const { t } = useLanguage();
 
   const handleLogin = (username: string, password: string) => {
-    console.log("Inlogpoging:", username, password);
+    console.log("Login attempt:", username, password);
     
     toast({
-      title: "Inloggen Succesvol",
-      description: `Welkom terug, ${username}!`,
+      title: t("loginSuccessful"),
+      description: `${t("welcomeBack")}, ${username}!`,
     });
 
     setLocation("/dashboard");

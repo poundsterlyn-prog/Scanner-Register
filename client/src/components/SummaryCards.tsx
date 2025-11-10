@@ -1,5 +1,6 @@
 import { Card } from "@/components/ui/card";
 import { Package, CheckCircle, AlertCircle } from "lucide-react";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 interface SummaryCardsProps {
   totalAssigned: number;
@@ -12,6 +13,8 @@ export default function SummaryCards({
   totalReturned,
   pending,
 }: SummaryCardsProps) {
+  const { t } = useLanguage();
+
   return (
     <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
       <Card className="p-6">
@@ -20,7 +23,7 @@ export default function SummaryCards({
             <Package className="w-6 h-6 text-primary" />
           </div>
           <div>
-            <p className="text-sm text-muted-foreground">Totaal Toegewezen</p>
+            <p className="text-sm text-muted-foreground">{t("totalAssigned")}</p>
             <p className="text-2xl font-semibold" data-testid="text-total-assigned">
               {totalAssigned}
             </p>
@@ -34,7 +37,7 @@ export default function SummaryCards({
             <CheckCircle className="w-6 h-6 text-chart-2" />
           </div>
           <div>
-            <p className="text-sm text-muted-foreground">Totaal Ingeleverd</p>
+            <p className="text-sm text-muted-foreground">{t("totalReturned")}</p>
             <p className="text-2xl font-semibold" data-testid="text-total-returned">
               {totalReturned}
             </p>
@@ -48,7 +51,7 @@ export default function SummaryCards({
             <AlertCircle className="w-6 h-6 text-destructive" />
           </div>
           <div>
-            <p className="text-sm text-muted-foreground">Wachtend op Inlevering</p>
+            <p className="text-sm text-muted-foreground">{t("pendingReturns")}</p>
             <p className="text-2xl font-semibold" data-testid="text-pending-returns">
               {pending}
             </p>

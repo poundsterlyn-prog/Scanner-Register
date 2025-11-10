@@ -11,6 +11,7 @@ import DriverManagement from "@/components/DriverManagement";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { useToast } from "@/hooks/use-toast";
+import { useLanguage } from "@/contexts/LanguageContext";
 import { Download } from "lucide-react";
 import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";
@@ -36,6 +37,7 @@ type ViewMode =
 
 export default function Dashboard() {
   const { toast } = useToast();
+  const { t, language } = useLanguage();
   const [viewMode, setViewMode] = useState<ViewMode>("dashboard");
   const [scannedId, setScannedId] = useState<string>("");
 
@@ -63,7 +65,7 @@ export default function Dashboard() {
     "Emma Wilson",
   ]);
 
-  const currentDate = new Date().toLocaleDateString("nl-NL", {
+  const currentDate = new Date().toLocaleDateString(language === "nl" ? "nl-NL" : "en-US", {
     weekday: "long",
     day: "numeric",
     month: "long",
@@ -80,8 +82,8 @@ export default function Dashboard() {
     const scanner = scanners.find((s) => s.id === barcode);
     if (!scanner) {
       toast({
-        title: "Scanner Niet Gevonden",
-        description: `Scanner ${barcode} is niet geregistreerd in het systeem.`,
+        title: t("scannerNotFound"),
+        description: `${t("scannerId")} ${barcode} ${t("scannerNotRegistered")}.`,
         variant: "destructive",
       });
       return;
@@ -89,8 +91,8 @@ export default function Dashboard() {
 
     if (scanner.status === "assigned" || scanner.status === "overdue") {
       toast({
-        title: "Al Toegewezen",
-        description: `Scanner ${barcode} is al toegewezen aan ${scanner.driver}.`,
+        title: t("alreadyAssigned"),
+        description: `${t("scannerId")} ${barcode} ${t("alreadyAssignedTo")} ${scanner.driver}.`,
         variant: "destructive",
       });
       return;
@@ -102,7 +104,7 @@ export default function Dashboard() {
 
   const handleAssignDriver = (driverName: string) => {
     const now = new Date();
-    const timeString = now.toLocaleTimeString("nl-NL", {
+    const timeString = now.toLocaleTimeString(language === "nl" ? "nl-NL" : "en-US", {
       hour: "2-digit",
       minute: "2-digit",
     });
@@ -116,8 +118,8 @@ export default function Dashboard() {
     );
 
     toast({
-      title: "Toewijzing Succesvol",
-      description: `Scanner ${scannedId} toegewezen aan ${driverName}`,
+      title: t("assignmentSuccessful"),
+      description: `${t("scannerId")} ${scannedId} ${t("assignedTo")} ${driverName}`,
     });
 
     setScannedId("");
@@ -129,26 +131,26 @@ export default function Dashboard() {
     if (!scanner) {
       return {
         valid: false,
-        message: "Scanner niet gevonden in systeem",
+        message: t("scannerNotFoundInSystem"),
       };
     }
 
     if (scanner.status !== "assigned" && scanner.status !== "overdue") {
       return {
         valid: false,
-        message: "Niet momenteel toegewezen",
+        message: t("notCurrentlyAssigned"),
       };
     }
 
     return {
       valid: true,
-      message: "Scanner gemarkeerd voor inlevering",
+      message: t("scannerMarkedForReturn"),
     };
   };
 
   const handleBatchReturn = (scannerIds: string[]) => {
     const now = new Date();
-    const timeString = now.toLocaleTimeString("nl-NL", {
+    const timeString = now.toLocaleTimeString(language === "nl" ? "nl-NL" : "en-US", {
       hour: "2-digit",
       minute: "2-digit",
     });
@@ -162,8 +164,8 @@ export default function Dashboard() {
     );
 
     toast({
-      title: "Inlevering Succesvol",
-      description: `${scannerIds.length} scanner(s) gemarkeerd als ingeleverd`,
+      title: t("returnSuccessful"),
+      description: `${scannerIds.length} ${t("scannersMarkedReturned")}`,
     });
 
     setViewMode("dashboard");
@@ -172,8 +174,8 @@ export default function Dashboard() {
   const handleRegisterScanner = (barcode: string) => {
     if (scanners.find((s) => s.id === barcode)) {
       toast({
-        title: "Al Geregistreerd",
-        description: `Scanner ${barcode} is al in het systeem.`,
+        title: t("alreadyRegistered"),
+        description: `${t("scannerId")} ${barcode} ${t("alreadyInSystem")}.`,
         variant: "destructive",
       });
       return;
@@ -182,8 +184,8 @@ export default function Dashboard() {
     setScanners((prev) => [...prev, { id: barcode, status: "available" }]);
 
     toast({
-      title: "Scanner Geregistreerd",
-      description: `Scanner ${barcode} toegevoegd aan inventaris`,
+      title: t("scannerRegistered"),
+      description: `${t("scannerId")} ${barcode} ${t("addedToInventory")}`,
     });
   };
 
@@ -191,15 +193,15 @@ export default function Dashboard() {
     const doc = new jsPDF();
 
     doc.setFontSize(18);
-    doc.text("Dagelijks Scanner Rapport", 14, 20);
+    doc.text(t("dailyScannerReport"), 14, 20);
 
     doc.setFontSize(11);
     doc.text(currentDate, 14, 28);
 
     doc.setFontSize(12);
-    doc.text(`Totaal Toegewezen: ${assignedCount + returnedCount}`, 14, 38);
-    doc.text(`Totaal Ingeleverd: ${returnedCount}`, 14, 45);
-    doc.text(`Wachtend op Inlevering: ${pendingCount}`, 14, 52);
+    doc.text(`${t("totalAssigned")}: ${assignedCount + returnedCount}`, 14, 38);
+    doc.text(`${t("totalReturned")}: ${returnedCount}`, 14, 45);
+    doc.text(`${t("pendingReturns")}: ${pendingCount}`, 14, 52);
 
     const assignedScanners = scanners.filter(
       (s) => s.status === "assigned" || s.status === "returned" || s.status === "overdue"
@@ -210,12 +212,12 @@ export default function Dashboard() {
       s.driver || "-",
       s.assignedTime || "-",
       s.returnTime || "-",
-      s.status === "returned" ? "Ingeleverd" : "Wachtend",
+      s.status === "returned" ? t("returned") : t("pending"),
     ]);
 
     autoTable(doc, {
       startY: 60,
-      head: [["Scanner ID", "Chauffeur", "Toegewezen", "Ingeleverd", "Status"]],
+      head: [[t("scannerId"), t("driver"), t("assignedTime"), t("returnedTime"), t("status")]],
       body: tableData,
       didParseCell: (data) => {
         if (data.row.index >= 0 && data.section === "body") {
@@ -227,11 +229,12 @@ export default function Dashboard() {
       },
     });
 
-    doc.save(`scanner-rapport-${new Date().toISOString().split("T")[0]}.pdf`);
+    const filename = language === "nl" ? "scanner-rapport" : "scanner-report";
+    doc.save(`${filename}-${new Date().toISOString().split("T")[0]}.pdf`);
 
     toast({
-      title: "Rapport Gegenereerd",
-      description: "PDF rapport is gedownload",
+      title: t("reportGenerated"),
+      description: t("pdfDownloaded"),
     });
   };
 
@@ -240,8 +243,8 @@ export default function Dashboard() {
       case "scan-assign":
         return (
           <BarcodeScanner
-            title="Scan Scanner om Toe te Wijzen"
-            description="Scan met Zebra scanner of gebruik camera"
+            title={t("scanScannerToAssign")}
+            description={t("scanWithZebraOrCamera")}
             onScan={handleScanForAssignment}
             onCancel={() => setViewMode("dashboard")}
           />
@@ -250,7 +253,7 @@ export default function Dashboard() {
       case "assign-driver":
         return (
           <Card className="p-6">
-            <h2 className="text-2xl font-semibold mb-4">Toewijzen aan Chauffeur</h2>
+            <h2 className="text-2xl font-semibold mb-4">{t("assignToDriver")}</h2>
             <DriverSelector
               scannerId={scannedId}
               drivers={drivers}
@@ -275,8 +278,8 @@ export default function Dashboard() {
       case "register":
         return (
           <BarcodeScanner
-            title="Nieuwe Scanner Registreren"
-            description="Scan met Zebra scanner of gebruik camera om toe te voegen aan inventaris"
+            title={t("registerNewScanner")}
+            description={t("scanToAddToInventory")}
             onScan={handleRegisterScanner}
             onCancel={() => setViewMode("dashboard")}
           />
@@ -286,10 +289,10 @@ export default function Dashboard() {
         return (
           <div className="space-y-4">
             <div className="flex items-center justify-between">
-              <h2 className="text-2xl font-semibold">Dagelijks Rapport</h2>
+              <h2 className="text-2xl font-semibold">{t("dailyReport")}</h2>
               <Button onClick={handleGeneratePDF} data-testid="button-download-pdf">
                 <Download className="w-4 h-4 mr-2" />
-                Download PDF
+                {t("downloadPdf")}
               </Button>
             </div>
 
@@ -323,7 +326,7 @@ export default function Dashboard() {
               className="w-full"
               data-testid="button-back-to-dashboard"
             >
-              Terug naar Dashboard
+              {t("backToDashboard")}
             </Button>
           </div>
         );
@@ -336,15 +339,15 @@ export default function Dashboard() {
               onAddDriver={(name) => {
                 setDrivers([...drivers, name]);
                 toast({
-                  title: "Chauffeur Toegevoegd",
-                  description: `${name} is toegevoegd aan de chauffeurlijst`,
+                  title: t("driverAdded"),
+                  description: `${name} ${t("addedToDriverList")}`,
                 });
               }}
               onRemoveDriver={(name) => {
                 setDrivers(drivers.filter((d) => d !== name));
                 toast({
-                  title: "Chauffeur Verwijderd",
-                  description: `${name} is verwijderd van de chauffeurlijst`,
+                  title: t("driverRemoved"),
+                  description: `${name} ${t("removedFromDriverList")}`,
                 });
               }}
             />
@@ -355,7 +358,7 @@ export default function Dashboard() {
               className="w-full"
               data-testid="button-back-from-drivers"
             >
-              Terug naar Dashboard
+              {t("backToDashboard")}
             </Button>
           </div>
         );
@@ -378,7 +381,7 @@ export default function Dashboard() {
             />
 
             <div className="space-y-4">
-              <h2 className="text-lg font-medium">Alle Scanners</h2>
+              <h2 className="text-lg font-medium">{t("allScanners")}</h2>
               <div className="grid gap-3">
                 {scanners.map((scanner) => (
                   <ScannerCard key={scanner.id} {...scanner} scannerId={scanner.id} />
@@ -396,8 +399,8 @@ export default function Dashboard() {
         currentDate={currentDate}
         onLogout={() => {
           toast({
-            title: "Uitgelogd",
-            description: "Sessie succesvol beëindigd",
+            title: t("loggedOut"),
+            description: t("sessionEndedSuccessfully"),
           });
         }}
       />

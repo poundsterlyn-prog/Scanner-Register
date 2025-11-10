@@ -5,6 +5,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card } from "@/components/ui/card";
 import { Camera, Keyboard, X } from "lucide-react";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 interface BarcodeScannerProps {
   onScan: (barcode: string) => void;
@@ -16,13 +17,17 @@ interface BarcodeScannerProps {
 export default function BarcodeScanner({
   onScan,
   onCancel,
-  title = "Scan Barcode",
-  description = "Richt camera op barcode of voer handmatig in",
+  title,
+  description,
 }: BarcodeScannerProps) {
+  const { t } = useLanguage();
   const [manualInput, setManualInput] = useState("");
   const [showManualInput, setShowManualInput] = useState(true);
   const [showCamera, setShowCamera] = useState(false);
   const scannerRef = useRef<Html5QrcodeScanner | null>(null);
+
+  const defaultTitle = t("scanBarcode");
+  const defaultDescription = t("pointCameraOrManual");
 
   useEffect(() => {
     if (!showCamera) return;
@@ -76,8 +81,8 @@ export default function BarcodeScanner({
     <div className="space-y-4">
       <div className="flex items-center justify-between">
         <div>
-          <h2 className="text-2xl font-semibold">{title}</h2>
-          <p className="text-sm text-muted-foreground mt-1">{description}</p>
+          <h2 className="text-2xl font-semibold">{title || defaultTitle}</h2>
+          <p className="text-sm text-muted-foreground mt-1">{description || defaultDescription}</p>
         </div>
         {onCancel && (
           <Button
@@ -96,24 +101,24 @@ export default function BarcodeScanner({
           <div className="space-y-4">
             <form onSubmit={handleManualSubmit}>
               <div className="space-y-2">
-                <Label htmlFor="manual-barcode">Voer Scanner ID in</Label>
+                <Label htmlFor="manual-barcode">{t("enterScannerId")}</Label>
                 <Input
                   id="manual-barcode"
                   type="text"
                   value={manualInput}
                   onChange={(e) => setManualInput(e.target.value)}
                   onKeyDown={handleKeyboardInput}
-                  placeholder="SC-001234 of scan met Zebra scanner"
+                  placeholder={t("scannerIdPlaceholder")}
                   autoFocus
                   data-testid="input-manual-barcode"
                 />
                 <p className="text-xs text-muted-foreground">
-                  Typ of gebruik uw Zebra DS3678 scanner
+                  {t("typeOrUseZebra")}
                 </p>
               </div>
               <div className="flex gap-2 mt-4">
                 <Button type="submit" className="flex-1" data-testid="button-submit-manual">
-                  Bevestigen
+                  {t("confirm")}
                 </Button>
                 <Button
                   type="button"
@@ -125,7 +130,7 @@ export default function BarcodeScanner({
                   data-testid="button-show-camera"
                 >
                   <Camera className="w-4 h-4 mr-2" />
-                  Gebruik Camera
+                  {t("useCamera")}
                 </Button>
               </div>
             </form>
@@ -145,7 +150,7 @@ export default function BarcodeScanner({
                 data-testid="button-manual-input"
               >
                 <Keyboard className="w-4 h-4 mr-2" />
-                Handmatig Invoeren
+                {t("manualInput")}
               </Button>
             </div>
           </div>

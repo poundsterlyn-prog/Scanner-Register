@@ -6,6 +6,7 @@ import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Camera, CheckCircle, AlertCircle, X } from "lucide-react";
 import { Html5QrcodeScanner } from "html5-qrcode";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 interface ScannedItem {
   scannerId: string;
@@ -25,6 +26,7 @@ export default function BatchReturnScanner({
   onCancel,
   validateScanner,
 }: BatchReturnScannerProps) {
+  const { t } = useLanguage();
   const [manualInput, setManualInput] = useState("");
   const [scannedItems, setScannedItems] = useState<ScannedItem[]>([]);
   const [showCamera, setShowCamera] = useState(false);
@@ -76,7 +78,7 @@ export default function BatchReturnScanner({
         {
           scannerId: trimmedId,
           status: "error",
-          message: "Al gescand",
+          message: t("alreadyScanned"),
           timestamp: new Date().toLocaleTimeString(),
         },
         ...prev,
@@ -84,7 +86,7 @@ export default function BatchReturnScanner({
       return;
     }
 
-    let result = { valid: true, message: "Scanner gemarkeerd voor inlevering" };
+    let result = { valid: true, message: t("scannerMarkedForReturn") };
     if (validateScanner) {
       result = validateScanner(trimmedId);
     }
@@ -133,9 +135,9 @@ export default function BatchReturnScanner({
     <div className="space-y-4">
       <div className="flex items-center justify-between">
         <div>
-          <h2 className="text-2xl font-semibold">Meerdere Scanners Inleveren</h2>
+          <h2 className="text-2xl font-semibold">{t("returnMultipleScanners")}</h2>
           <p className="text-sm text-muted-foreground mt-1">
-            Scan meerdere scanners om als ingeleverd te markeren
+            {t("scanMultipleToReturn")}
           </p>
         </div>
         {onCancel && (
@@ -155,7 +157,7 @@ export default function BatchReturnScanner({
           <div className="space-y-4">
             <form onSubmit={handleManualSubmit}>
               <div className="space-y-2">
-                <Label htmlFor="batch-scanner-input">Scan Scanner IDs</Label>
+                <Label htmlFor="batch-scanner-input">{t("scanScannerIds")}</Label>
                 <Input
                   ref={inputRef}
                   id="batch-scanner-input"
@@ -163,11 +165,11 @@ export default function BatchReturnScanner({
                   value={manualInput}
                   onChange={(e) => setManualInput(e.target.value)}
                   onKeyDown={handleKeyDown}
-                  placeholder="Scan met Zebra scanner of typ handmatig"
+                  placeholder={t("scanWithZebraOrType")}
                   data-testid="input-batch-scanner"
                 />
                 <p className="text-xs text-muted-foreground">
-                  Druk op Enter of scan om elke scanner toe te voegen
+                  {t("pressEnterToAdd")}
                 </p>
               </div>
             </form>
@@ -180,7 +182,7 @@ export default function BatchReturnScanner({
                 data-testid="button-use-camera-batch"
               >
                 <Camera className="w-4 h-4 mr-2" />
-                Gebruik Camera
+                {t("useCamera")}
               </Button>
             </div>
           </div>
@@ -193,7 +195,7 @@ export default function BatchReturnScanner({
                 onClick={() => setShowCamera(false)}
                 data-testid="button-use-keyboard-batch"
               >
-                Gebruik Toetsenbord
+                {t("manualInput")}
               </Button>
             </div>
           </div>
@@ -204,10 +206,10 @@ export default function BatchReturnScanner({
         <Card className="p-6">
           <div className="flex items-center justify-between mb-4">
             <h3 className="text-lg font-medium">
-              Gescande Items ({successCount} succesvol)
+              {t("scannedItems")} ({successCount} {t("successful")})
             </h3>
             <Badge variant="secondary" data-testid="text-scanned-count">
-              {scannedItems.length} totaal
+              {scannedItems.length} {t("total")}
             </Badge>
           </div>
 
@@ -255,11 +257,11 @@ export default function BatchReturnScanner({
           className="flex-1"
           data-testid="button-complete-batch"
         >
-          Inlevering Voltooien ({successCount})
+          {t("completeReturn")} ({successCount})
         </Button>
         {onCancel && (
           <Button variant="outline" onClick={onCancel} data-testid="button-cancel-batch-bottom">
-            Annuleren
+            {t("cancel")}
           </Button>
         )}
       </div>

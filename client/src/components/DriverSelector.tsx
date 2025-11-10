@@ -9,6 +9,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 interface DriverSelectorProps {
   drivers: string[];
@@ -23,6 +24,7 @@ export default function DriverSelector({
   onCancel,
   scannerId,
 }: DriverSelectorProps) {
+  const { t } = useLanguage();
   const [selectedDriver, setSelectedDriver] = useState("");
   const [customDriver, setCustomDriver] = useState("");
   const [useCustom, setUseCustom] = useState(false);
@@ -41,7 +43,7 @@ export default function DriverSelector({
     <div className="space-y-4">
       {scannerId && (
         <div className="p-4 bg-accent/50 rounded-lg">
-          <p className="text-sm text-muted-foreground">Scanner ID</p>
+          <p className="text-sm text-muted-foreground">{t("scannerId")}</p>
           <p className="text-lg font-mono font-semibold" data-testid="text-selected-scanner">
             {scannerId}
           </p>
@@ -49,12 +51,12 @@ export default function DriverSelector({
       )}
 
       <div className="space-y-2">
-        <Label htmlFor="driver-select">Toewijzen aan Chauffeur</Label>
+        <Label htmlFor="driver-select">{t("assignToDriver")}</Label>
         {!useCustom ? (
           <div className="space-y-2">
             <Select value={selectedDriver} onValueChange={setSelectedDriver}>
               <SelectTrigger id="driver-select" data-testid="select-driver">
-                <SelectValue placeholder="Selecteer een chauffeur" />
+                <SelectValue placeholder={t("selectDriver")} />
               </SelectTrigger>
               <SelectContent>
                 {drivers.map((driver) => (
@@ -71,7 +73,7 @@ export default function DriverSelector({
               className="w-full"
               data-testid="button-add-custom-driver"
             >
-              + Nieuwe Chauffeur Toevoegen
+              {t("addNewDriver")}
             </Button>
           </div>
         ) : (
@@ -81,7 +83,7 @@ export default function DriverSelector({
               type="text"
               value={customDriver}
               onChange={(e) => setCustomDriver(e.target.value)}
-              placeholder="Voer naam chauffeur in"
+              placeholder={t("enterDriverName")}
               autoFocus
               data-testid="input-custom-driver"
             />
@@ -95,7 +97,7 @@ export default function DriverSelector({
               className="w-full"
               data-testid="button-use-list"
             >
-              Kies uit Lijst
+              {t("chooseFromList")}
             </Button>
           </div>
         )}
@@ -108,11 +110,11 @@ export default function DriverSelector({
           className="flex-1"
           data-testid="button-confirm-assignment"
         >
-          Toewijzing Bevestigen
+          {t("confirmAssignment")}
         </Button>
         {onCancel && (
           <Button variant="outline" onClick={onCancel} data-testid="button-cancel-assignment">
-            Annuleren
+            {t("cancel")}
           </Button>
         )}
       </div>

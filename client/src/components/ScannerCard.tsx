@@ -1,6 +1,7 @@
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Clock, User, Package } from "lucide-react";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 interface ScannerCardProps {
   scannerId: string;
@@ -19,6 +20,8 @@ export default function ScannerCard({
   status,
   onClick,
 }: ScannerCardProps) {
+  const { t } = useLanguage();
+
   const getStatusColor = () => {
     switch (status) {
       case "available":
@@ -37,15 +40,15 @@ export default function ScannerCard({
   const getStatusText = () => {
     switch (status) {
       case "available":
-        return "Beschikbaar";
+        return t("available");
       case "assigned":
-        return "Toegewezen";
+        return t("assigned");
       case "returned":
-        return "Ingeleverd";
+        return t("returned");
       case "overdue":
-        return "Te laat";
+        return t("overdue");
       default:
-        return "Onbekend";
+        return status;
     }
   };
 
@@ -83,7 +86,7 @@ export default function ScannerCard({
           {returnTime && (
             <div className="flex items-center gap-2 text-sm text-muted-foreground">
               <Clock className="w-4 h-4" />
-              <span data-testid={`text-return-time-${scannerId}`}>Ingeleverd: {returnTime}</span>
+              <span data-testid={`text-return-time-${scannerId}`}>{t("returnedPrefix")}: {returnTime}</span>
             </div>
           )}
         </div>
