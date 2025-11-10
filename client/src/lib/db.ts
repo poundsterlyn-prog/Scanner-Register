@@ -114,6 +114,34 @@ export function getTodayDate(): string {
   return `${year}-${month}-${day}`;
 }
 
+export function getDateDaysAgo(daysAgo: number): string {
+  const date = new Date();
+  date.setDate(date.getDate() - daysAgo);
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, '0');
+  const day = String(date.getDate()).padStart(2, '0');
+  return `${year}-${month}-${day}`;
+}
+
+export function getLast7DaysOptions(language: string): { value: string; label: string }[] {
+  const dates = [];
+  for (let i = 0; i < 7; i++) {
+    const dateStr = getDateDaysAgo(i);
+    const date = new Date(dateStr);
+    const label = date.toLocaleDateString(language === "nl" ? "nl-NL" : "en-US", {
+      weekday: "short",
+      month: "short",
+      day: "numeric",
+    });
+    const todayLabel = language === "nl" ? "Vandaag" : "Today";
+    dates.push({ 
+      value: dateStr, 
+      label: i === 0 ? `${todayLabel} (${label})` : label 
+    });
+  }
+  return dates;
+}
+
 // Initialize database and perform daily cleanup
 export async function initializeDatabase(): Promise<void> {
   // Clean up old assignments (keep only today's)

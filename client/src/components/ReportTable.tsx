@@ -16,6 +16,7 @@ interface ReportEntry {
   assignedTime: string;
   returnTime?: string;
   status: "returned" | "pending";
+  notes?: string;
 }
 
 interface ReportTableProps {
@@ -42,12 +43,13 @@ export default function ReportTable({ entries, date }: ReportTableProps) {
               <TableHead>{t("assignedTime")}</TableHead>
               <TableHead>{t("returnedTime")}</TableHead>
               <TableHead>{t("status")}</TableHead>
+              <TableHead>{t("notes")}</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
             {entries.length === 0 ? (
               <TableRow>
-                <TableCell colSpan={5} className="text-center text-muted-foreground">
+                <TableCell colSpan={6} className="text-center text-muted-foreground">
                   {t("noAssignmentsToday")}
                 </TableCell>
               </TableRow>
@@ -75,6 +77,9 @@ export default function ReportTable({ entries, date }: ReportTableProps) {
                     >
                       {entry.status === "returned" ? t("returned") : t("pending")}
                     </Badge>
+                  </TableCell>
+                  <TableCell className="text-muted-foreground text-sm" data-testid={`cell-notes-${entry.scannerId}`}>
+                    {entry.notes || "-"}
                   </TableCell>
                 </TableRow>
               ))

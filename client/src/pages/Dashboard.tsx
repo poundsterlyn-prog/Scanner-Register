@@ -11,6 +11,7 @@ import DriverManagement from "@/components/DriverManagement";
 import ScannerManagement from "@/components/ScannerManagement";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { Download } from "lucide-react";
@@ -22,6 +23,7 @@ import {
   driverStorage,
   assignmentStorage,
   getTodayDate,
+  getLast7DaysOptions,
   initializeDatabase,
 } from "@/lib/db";
 import type { Scanner, Driver, Assignment, ScannerStatus } from "@shared/schema";
@@ -52,6 +54,7 @@ export default function Dashboard() {
   const [viewMode, setViewMode] = useState<ViewMode>("dashboard");
   const [scannedId, setScannedId] = useState<string>("");
   const [isInitialized, setIsInitialized] = useState(false);
+  const [selectedReportDate, setSelectedReportDate] = useState<string>(getTodayDate());
 
   const today = getTodayDate();
 
@@ -59,6 +62,7 @@ export default function Dashboard() {
   const scanners = useLiveQuery(() => scannerStorage.getAll(), []) ?? [];
   const drivers = useLiveQuery(() => driverStorage.getAll(), []) ?? [];
   const assignments = useLiveQuery(() => assignmentStorage.getByDate(today), [today]) ?? [];
+  const reportAssignments = useLiveQuery(() => assignmentStorage.getByDate(selectedReportDate), [selectedReportDate]) ?? [];
 
   // Initialize database on mount
   useEffect(() => {
@@ -74,9 +78,27 @@ export default function Dashboard() {
     year: "numeric",
   });
 
-  // Combine scanners with their assignments for display
+  // Combine scanners with their assignments for display (dashboard)
   const scannerViews: ScannerView[] = scanners.map((scanner) => {
     const assignment = assignments.find((a) => a.scannerId === scanner.id);
+    if (assignment) {
+      return {
+        id: scanner.id,
+        driver: assignment.driverName,
+        assignedTime: assignment.assignedTime,
+        returnTime: assignment.returnTime,
+        status: assignment.status,
+      };
+    }
+    return {
+      id: scanner.id,
+      status: "available" as const,
+    };
+  });
+
+  // Combine scanners with report assignments for the selected date
+  const reportScannerViews: ScannerView[] = scanners.map((scanner) => {
+    const assignment = reportAssignments.find((a) => a.scannerId === scanner.id);
     if (assignment) {
       return {
         id: scanner.id,
@@ -95,6 +117,12 @@ export default function Dashboard() {
   const assignedCount = scannerViews.filter((s) => s.status === "assigned").length;
   const returnedCount = scannerViews.filter((s) => s.status === "returned").length;
   const pendingCount = scannerViews.filter(
+    (s) => s.status === "assigned" || s.status === "overdue"
+  ).length;
+
+  const reportAssignedCount = reportScannerViews.filter((s) => s.status === "assigned").length;
+  const reportReturnedCount = reportScannerViews.filter((s) => s.status === "returned").length;
+  const reportPendingCount = reportScannerViews.filter(
     (s) => s.status === "assigned" || s.status === "overdue"
   ).length;
 
@@ -286,32 +314,43 @@ export default function Dashboard() {
   const handleGeneratePDF = () => {
     const doc = new jsPDF();
 
+    const reportDate = new Date(selectedReportDate).toLocaleDateString(language === "nl" ? "nl-NL" : "en-US", {
+      weekday: "long",
+      day: "numeric",
+      month: "long",
+      year: "numeric",
+    });
+
     doc.setFontSize(18);
     doc.text(t("dailyScannerReport"), 14, 20);
 
     doc.setFontSize(11);
-    doc.text(currentDate, 14, 28);
+    doc.text(reportDate, 14, 28);
 
     doc.setFontSize(12);
-    doc.text(`${t("totalAssigned")}: ${assignedCount + returnedCount}`, 14, 38);
-    doc.text(`${t("totalReturned")}: ${returnedCount}`, 14, 45);
-    doc.text(`${t("pendingReturns")}: ${pendingCount}`, 14, 52);
+    doc.text(`${t("totalAssigned")}: ${reportAssignedCount + reportReturnedCount}`, 14, 38);
+    doc.text(`${t("totalReturned")}: ${reportReturnedCount}`, 14, 45);
+    doc.text(`${t("pendingReturns")}: ${reportPendingCount}`, 14, 52);
 
-    const assignedScanners = scannerViews.filter(
+    const assignedScanners = reportScannerViews.filter(
       (s) => s.status === "assigned" || s.status === "returned" || s.status === "overdue"
     );
 
-    const tableData = assignedScanners.map((s) => [
-      s.id,
-      s.driver || "-",
-      s.assignedTime || "-",
-      s.returnTime || "-",
-      s.status === "returned" ? t("returned") : t("pending"),
-    ]);
+    const tableData = assignedScanners.map((s) => {
+      const scanner = scanners.find((sc) => sc.id === s.id);
+      return [
+        s.id,
+        s.driver || "-",
+        s.assignedTime || "-",
+        s.returnTime || "-",
+        s.status === "returned" ? t("returned") : t("pending"),
+        scanner?.notes || "-",
+      ];
+    });
 
     autoTable(doc, {
       startY: 60,
-      head: [[t("scannerId"), t("driver"), t("assignedTime"), t("returnedTime"), t("status")]],
+      head: [[t("scannerId"), t("driver"), t("assignedTime"), t("returnedTime"), t("status"), t("notes")]],
       body: tableData,
       didParseCell: (data) => {
         if (data.row.index >= 0 && data.section === "body") {
@@ -324,7 +363,7 @@ export default function Dashboard() {
     });
 
     const filename = language === "nl" ? "scanner-rapport" : "scanner-report";
-    doc.save(`${filename}-${today}.pdf`);
+    doc.save(`${filename}-${selectedReportDate}.pdf`);
 
     toast({
       title: t("reportGenerated"),
@@ -380,38 +419,66 @@ export default function Dashboard() {
         );
 
       case "report":
+        const reportDateFormatted = new Date(selectedReportDate).toLocaleDateString(language === "nl" ? "nl-NL" : "en-US", {
+          weekday: "long",
+          day: "numeric",
+          month: "long",
+          year: "numeric",
+        });
+
         return (
           <div className="space-y-4">
-            <div className="flex items-center justify-between">
+            <div className="flex items-center justify-between gap-4 flex-wrap">
               <h2 className="text-2xl font-semibold">{t("dailyReport")}</h2>
-              <Button onClick={handleGeneratePDF} data-testid="button-download-pdf">
-                <Download className="w-4 h-4 mr-2" />
-                {t("downloadPdf")}
-              </Button>
+              <div className="flex items-center gap-3">
+                <Select
+                  value={selectedReportDate}
+                  onValueChange={setSelectedReportDate}
+                >
+                  <SelectTrigger className="w-[200px]" data-testid="select-report-date">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {getLast7DaysOptions(language).map((option) => (
+                      <SelectItem key={option.value} value={option.value} data-testid={`option-date-${option.value}`}>
+                        {option.label}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                <Button onClick={handleGeneratePDF} data-testid="button-download-pdf">
+                  <Download className="w-4 h-4 mr-2" />
+                  {t("downloadPdf")}
+                </Button>
+              </div>
             </div>
 
             <SummaryCards
-              totalAssigned={assignedCount + returnedCount}
-              totalReturned={returnedCount}
-              pending={pendingCount}
+              totalAssigned={reportAssignedCount + reportReturnedCount}
+              totalReturned={reportReturnedCount}
+              pending={reportPendingCount}
             />
 
             <ReportTable
-              date={currentDate}
-              entries={scannerViews
+              date={reportDateFormatted}
+              entries={reportScannerViews
                 .filter(
                   (s) =>
                     s.status === "assigned" ||
                     s.status === "returned" ||
                     s.status === "overdue"
                 )
-                .map((s) => ({
-                  scannerId: s.id,
-                  driver: s.driver || "",
-                  assignedTime: s.assignedTime || "",
-                  returnTime: s.returnTime,
-                  status: s.status === "returned" ? "returned" : "pending",
-                }))}
+                .map((s) => {
+                  const scanner = scanners.find((sc) => sc.id === s.id);
+                  return {
+                    scannerId: s.id,
+                    driver: s.driver || "",
+                    assignedTime: s.assignedTime || "",
+                    returnTime: s.returnTime,
+                    status: s.status === "returned" ? "returned" : "pending",
+                    notes: scanner?.notes,
+                  };
+                })}
             />
 
             <Button
