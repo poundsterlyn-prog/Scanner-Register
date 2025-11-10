@@ -9,8 +9,8 @@ const db = new Dexie("ScannerTrackerDB") as Dexie & {
 };
 
 // Define the schema
-db.version(1).stores({
-  scanners: "id, registeredAt",
+db.version(2).stores({
+  scanners: "id, registeredAt, notes",
   drivers: "name, addedAt",
   assignments: "id, scannerId, driverName, date, status",
 });
@@ -29,6 +29,10 @@ export const scannerStorage = {
 
   async add(scanner: Scanner): Promise<void> {
     await db.scanners.add(scanner);
+  },
+
+  async update(id: string, updates: Partial<Scanner>): Promise<void> {
+    await db.scanners.update(id, updates);
   },
 
   async delete(id: string): Promise<void> {

@@ -41,6 +41,8 @@ export const translations = {
     dailySummary: "Daily summary",
     manageDrivers: "Manage Drivers",
     addOrRemoveDrivers: "Add or remove drivers",
+    manageScannersButton: "Manage Scanners",
+    deleteOrAddNotes: "Delete scanners or add notes",
     
     // Barcode Scanner
     scanBarcode: "Scan Barcode",
@@ -127,6 +129,21 @@ export const translations = {
     
     // Loading
     loading: "Loading",
+    
+    // Scanner Management
+    manageScanners: "Manage Scanners",
+    registeredScanners: "Registered Scanners",
+    noScannersYet: "No scanners registered yet",
+    registered: "Registered",
+    scannerNotes: "Scanner Notes / Issues",
+    addNotesPlaceholder: "Add notes about issues, repairs, or status...",
+    save: "Save",
+    notes: "Notes",
+    noNotes: "No notes",
+    scannerDeleted: "Scanner Deleted",
+    scannerRemovedFromSystem: "has been removed from the system",
+    notesUpdated: "Notes Updated",
+    scannerNotesUpdated: "Scanner notes have been updated",
   },
   nl: {
     // Login
@@ -168,6 +185,8 @@ export const translations = {
     dailySummary: "Dagelijkse samenvatting",
     manageDrivers: "Chauffeurs Beheren",
     addOrRemoveDrivers: "Chauffeurs toevoegen of verwijderen",
+    manageScannersButton: "Scanners Beheren",
+    deleteOrAddNotes: "Scanners verwijderen of notities toevoegen",
     
     // Barcode Scanner
     scanBarcode: "Scan Barcode",
@@ -254,6 +273,21 @@ export const translations = {
     
     // Loading
     loading: "Laden",
+    
+    // Scanner Management
+    manageScanners: "Scanners Beheren",
+    registeredScanners: "Geregistreerde Scanners",
+    noScannersYet: "Nog geen scanners geregistreerd",
+    registered: "Geregistreerd",
+    scannerNotes: "Scanner Notities / Problemen",
+    addNotesPlaceholder: "Voeg notities toe over problemen, reparaties of status...",
+    save: "Opslaan",
+    notes: "Notities",
+    noNotes: "Geen notities",
+    scannerDeleted: "Scanner Verwijderd",
+    scannerRemovedFromSystem: "is verwijderd uit het systeem",
+    notesUpdated: "Notities Bijgewerkt",
+    scannerNotesUpdated: "Scanner notities zijn bijgewerkt",
   },
 };
 

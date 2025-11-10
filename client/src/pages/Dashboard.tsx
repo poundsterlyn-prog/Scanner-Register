@@ -8,6 +8,7 @@ import BatchReturnScanner from "@/components/BatchReturnScanner";
 import DriverSelector from "@/components/DriverSelector";
 import ReportTable from "@/components/ReportTable";
 import DriverManagement from "@/components/DriverManagement";
+import ScannerManagement from "@/components/ScannerManagement";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { useToast } from "@/hooks/use-toast";
@@ -42,6 +43,7 @@ type ViewMode =
   | "register"
   | "report"
   | "manage-drivers"
+  | "manage-scanners"
   | "assign-driver";
 
 export default function Dashboard() {
@@ -254,6 +256,33 @@ export default function Dashboard() {
     });
   };
 
+  const handleDeleteScanner = async (id: string) => {
+    // Delete the scanner
+    await scannerStorage.delete(id);
+
+    // Also delete all assignments for this scanner (past and present)
+    // to allow re-registration with the same ID
+    const allAssignments = await assignmentStorage.getAll();
+    const scannerAssignments = allAssignments.filter((a) => a.scannerId === id);
+    for (const assignment of scannerAssignments) {
+      await assignmentStorage.delete(assignment.id);
+    }
+
+    toast({
+      title: t("scannerDeleted"),
+      description: `${t("scannerId")} ${id} ${t("scannerRemovedFromSystem")}`,
+    });
+  };
+
+  const handleUpdateScannerNotes = async (id: string, notes: string) => {
+    await scannerStorage.update(id, { notes });
+
+    toast({
+      title: t("notesUpdated"),
+      description: t("scannerNotesUpdated"),
+    });
+  };
+
   const handleGeneratePDF = () => {
     const doc = new jsPDF();
 
@@ -416,6 +445,26 @@ export default function Dashboard() {
           </div>
         );
 
+      case "manage-scanners":
+        return (
+          <div className="space-y-4">
+            <ScannerManagement
+              scanners={scanners}
+              onDeleteScanner={handleDeleteScanner}
+              onUpdateNotes={handleUpdateScannerNotes}
+            />
+
+            <Button
+              variant="outline"
+              onClick={() => setViewMode("dashboard")}
+              className="w-full"
+              data-testid="button-back-from-scanners"
+            >
+              {t("backToDashboard")}
+            </Button>
+          </div>
+        );
+
       default:
         return (
           <div className="space-y-6">
@@ -431,6 +480,7 @@ export default function Dashboard() {
               onRegisterScanner={() => setViewMode("register")}
               onViewReport={() => setViewMode("report")}
               onManageDrivers={() => setViewMode("manage-drivers")}
+              onManageScanners={() => setViewMode("manage-scanners")}
             />
 
             <div className="space-y-4">

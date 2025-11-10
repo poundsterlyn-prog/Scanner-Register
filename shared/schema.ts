@@ -8,6 +8,7 @@ export type ScannerStatus = z.infer<typeof scannerStatusEnum>;
 export const scannerSchema = z.object({
   id: z.string(),
   registeredAt: z.string(),
+  notes: z.string().optional(),
 });
 
 export type Scanner = z.infer<typeof scannerSchema>;

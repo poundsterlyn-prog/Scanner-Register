@@ -1,6 +1,6 @@
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-import { Camera, UserPlus, PackageCheck, FileText, Settings } from "lucide-react";
+import { Camera, UserPlus, PackageCheck, FileText, Settings, ScanBarcode } from "lucide-react";
 import { useLanguage } from "@/contexts/LanguageContext";
 
 interface QuickActionsProps {
@@ -9,6 +9,7 @@ interface QuickActionsProps {
   onRegisterScanner: () => void;
   onViewReport: () => void;
   onManageDrivers: () => void;
+  onManageScanners: () => void;
 }
 
 export default function QuickActions({
@@ -17,6 +18,7 @@ export default function QuickActions({
   onRegisterScanner,
   onViewReport,
   onManageDrivers,
+  onManageScanners,
 }: QuickActionsProps) {
   const { t } = useLanguage();
 
@@ -78,13 +80,26 @@ export default function QuickActions({
         <Button
           onClick={onManageDrivers}
           variant="secondary"
-          className="h-auto py-4 justify-start sm:col-span-2"
+          className="h-auto py-4 justify-start"
           data-testid="button-manage-drivers"
         >
           <Settings className="w-5 h-5 mr-3" />
           <div className="text-left">
             <div className="font-medium">{t("manageDrivers")}</div>
             <div className="text-xs opacity-90">{t("addOrRemoveDrivers")}</div>
+          </div>
+        </Button>
+
+        <Button
+          onClick={onManageScanners}
+          variant="secondary"
+          className="h-auto py-4 justify-start"
+          data-testid="button-manage-scanners"
+        >
+          <ScanBarcode className="w-5 h-5 mr-3" />
+          <div className="text-left">
+            <div className="font-medium">{t("manageScannersButton")}</div>
+            <div className="text-xs opacity-90">{t("deleteOrAddNotes")}</div>
           </div>
         </Button>
       </div>
