@@ -6,6 +6,15 @@ Scanner Tracker is a Progressive Web Application (PWA) designed for managing del
 
 ## Recent Changes
 
+**November 10, 2025 - Daily Report Enhancements**
+- Added scanner notes column to daily report table and PDF exports
+- Implemented 7-day historical report viewing with date selector dropdown
+- Fixed critical bug: Daily cleanup now retains 7 days of assignment data instead of deleting everything before today
+- Fixed timezone bug: Date parsing now uses local time construction to prevent day-name shifts
+- Created separate query and view logic for historical reports vs. dashboard
+- Updated PDF generation to include notes column and reflect selected report date in filename
+- All historical data remains accessible for the last 7 days
+
 **November 10, 2025 - Scanner Management Features**
 - Added scanner notes/comments field for tracking issues and repairs
 - Implemented scanner deletion with automatic assignment cleanup
@@ -88,7 +97,8 @@ Preferred communication style: Simple, everyday language.
 
 **Data Architecture Decision**
 - **Client-first approach** chosen for offline reliability in warehouse environments
-- Scanner assignments reset daily (date-based grouping)
+- Scanner assignments grouped by date with 7-day retention for historical reporting
+- Daily cleanup removes assignments older than 7 days
 - Scanner and driver registries persist long-term
 - Future sync mechanism planned between client IndexedDB and PostgreSQL
 
