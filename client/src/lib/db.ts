@@ -110,32 +110,8 @@ export function getTodayDate(): string {
   return `${year}-${month}-${day}`;
 }
 
-// Initialize database with default data if empty
+// Initialize database and perform daily cleanup
 export async function initializeDatabase(): Promise<void> {
-  const scannerCount = await db.scanners.count();
-  const driverCount = await db.drivers.count();
-
-  // Seed scanners if empty
-  if (scannerCount === 0) {
-    const defaultScanners: Scanner[] = [
-      { id: "SC-001234", registeredAt: new Date().toISOString() },
-      { id: "SC-002345", registeredAt: new Date().toISOString() },
-      { id: "SC-003456", registeredAt: new Date().toISOString() },
-    ];
-    await db.scanners.bulkAdd(defaultScanners);
-  }
-
-  // Seed drivers if empty
-  if (driverCount === 0) {
-    const defaultDrivers: Driver[] = [
-      { name: "John Smith", addedAt: new Date().toISOString() },
-      { name: "Sarah Johnson", addedAt: new Date().toISOString() },
-      { name: "Mike Davis", addedAt: new Date().toISOString() },
-      { name: "Emma Wilson", addedAt: new Date().toISOString() },
-    ];
-    await db.drivers.bulkAdd(defaultDrivers);
-  }
-
   // Clean up old assignments (keep only today's)
   await performDailyCleanup();
 }
