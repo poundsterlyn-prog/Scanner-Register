@@ -4,6 +4,16 @@
 
 Scanner Tracker is a Progressive Web Application (PWA) designed for managing delivery scanner assignments in warehouse and logistics operations. The system enables staff to track scanner assignments to drivers, manage returns, and generate daily reports. Built with a mobile-first approach, it prioritizes efficiency for daily barcode scanning operations with offline-capable functionality.
 
+## Recent Changes
+
+**November 10, 2025 - Scanner Management Features**
+- Added scanner notes/comments field for tracking issues and repairs
+- Implemented scanner deletion with automatic assignment cleanup
+- Created dedicated Scanner Management screen accessible from Quick Actions
+- Database schema upgraded to v2 to support notes field
+- Scanner deletion now cascades to remove all related assignments, enabling ID reuse
+- All features work offline with IndexedDB persistence
+
 ## User Preferences
 
 Preferred communication style: Simple, everyday language.
@@ -65,8 +75,8 @@ Preferred communication style: Simple, everyday language.
 
 **Client-Side Database (Primary)**
 - **Dexie.js** wrapper around IndexedDB
-- Schema version 1 with three entity tables:
-  - `scanners`: Scanner registry (id, registeredAt)
+- Schema version 2 with three entity tables:
+  - `scanners`: Scanner registry (id, registeredAt, notes) - now includes optional notes field
   - `drivers`: Driver list (name, addedAt)
   - `assignments`: Daily assignment records (id, scannerId, driverName, assignedTime, returnTime, status, date)
 
