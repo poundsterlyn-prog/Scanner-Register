@@ -219,12 +219,20 @@ export default function Dashboard() {
       }
     }
 
-    toast({
-      title: t("returnSuccessful"),
-      description: `${scannerIds.length} ${t("scannersMarkedReturned")}`,
-    });
+    // Show toast notification (single scanner gets simpler message)
+    if (scannerIds.length === 1) {
+      toast({
+        title: t("returnSuccessful"),
+        description: `${t("scannerId")} ${scannerIds[0]} ${t("returned")}`,
+      });
+    } else {
+      toast({
+        title: t("returnSuccessful"),
+        description: `${scannerIds.length} ${t("scannersMarkedReturned")}`,
+      });
+    }
 
-    setViewMode("dashboard");
+    // Don't navigate away - let user continue scanning or manually cancel
   };
 
   const handleRegisterScanner = async (barcode: string) => {
@@ -249,6 +257,9 @@ export default function Dashboard() {
       title: t("scannerRegistered"),
       description: `${t("scannerId")} ${barcode} ${t("addedToInventory")}`,
     });
+
+    // Return to dashboard to ensure data refreshes properly
+    setViewMode("dashboard");
   };
 
   const handleAddDriver = async (name: string) => {

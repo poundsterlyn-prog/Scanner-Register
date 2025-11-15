@@ -101,6 +101,11 @@ export default function BatchReturnScanner({
       ...prev,
     ]);
 
+    // Auto-return immediately after successful scan
+    if (result.valid) {
+      onComplete([trimmedId]);
+    }
+
     setManualInput("");
   };
 
@@ -251,16 +256,8 @@ export default function BatchReturnScanner({
       )}
 
       <div className="flex gap-2">
-        <Button
-          onClick={handleComplete}
-          disabled={successCount === 0}
-          className="flex-1"
-          data-testid="button-complete-batch"
-        >
-          {t("completeReturn")} ({successCount})
-        </Button>
         {onCancel && (
-          <Button variant="outline" onClick={onCancel} data-testid="button-cancel-batch-bottom">
+          <Button variant="outline" onClick={onCancel} className="flex-1" data-testid="button-cancel-batch-bottom">
             {t("cancel")}
           </Button>
         )}
