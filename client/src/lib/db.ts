@@ -8,12 +8,53 @@ const db = new Dexie("ScannerTrackerDB") as Dexie & {
   assignments: EntityTable<Assignment, "id">;
 };
 
+/**
+ * Normalize a scanned/typed scanner ID so the same physical scanner always
+ * produces the same key. Barcode readers (Zebra keyboard wedge, camera) can
+ * add invisible control characters (e.g. \r, \t, GS) or send lowercase when
+ * Caps Lock is on, which made exact lookups fail.
+ */
+export function normalizeScannerId(raw: string): string {
+  return String(raw ?? "")
+    .replace(/[\u0000-\u001F\u007F\u200B-\u200D\uFEFF]/g, "")
+    .trim()
+    .toUpperCase();
+}
+
 // Define the schema
 db.version(2).stores({
   scanners: "id, registeredAt, notes",
   drivers: "name, addedAt",
   assignments: "id, scannerId, driverName, date, status",
 });
+
+// Version 3: same schema, but normalize all IDs that were stored before
+db.version(3)
+  .stores({
+    scanners: "id, registeredAt, notes",
+    drivers: "name, addedAt",
+    assignments: "id, scannerId, driverName, date, status",
+  })
+  .upgrade(async (tx) => {
+    const scannersTable = tx.table("scanners");
+    const allScanners: Scanner[] = await scannersTable.toArray();
+    for (const scanner of allScanners) {
+      const normalized = normalizeScannerId(scanner.id);
+      if (normalized !== scanner.id) {
+        await scannersTable.delete(scanner.id);
+        const existing = await scannersTable.get(normalized);
+        if (!existing) {
+          await scannersTable.add({ ...scanner, id: normalized });
+        }
+      }
+    }
+    await tx
+      .table("assignments")
+      .toCollection()
+      .modify((a: Assignment) => {
+        a.scannerId = normalizeScannerId(a.scannerId);
+      });
+  });
 
 export { db };
 
@@ -71,6 +112,11 @@ export const assignmentStorage = {
 
   async getByDate(date: string): Promise<Assignment[]> {
     return await db.assignments.where("date").equals(date).toArray();
+  },
+
+  // All assignments that have not been returned yet, from ANY day
+  async getOpen(): Promise<Assignment[]> {
+    return await db.assignments.where("status").equals("assigned").toArray();
   },
 
   async getByScannerId(scannerId: string): Promise<Assignment | undefined> {
