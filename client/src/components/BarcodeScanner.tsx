@@ -25,6 +25,9 @@ export default function BarcodeScanner({
   const [showManualInput, setShowManualInput] = useState(true);
   const [showCamera, setShowCamera] = useState(false);
   const scannerRef = useRef<Html5QrcodeScanner | null>(null);
+  // Always call the latest onScan without restarting the camera on every render
+  const onScanRef = useRef(onScan);
+  onScanRef.current = onScan;
 
   const defaultTitle = t("scanBarcode");
   const defaultDescription = t("pointCameraOrManual");
@@ -44,8 +47,8 @@ export default function BarcodeScanner({
 
     scanner.render(
       (decodedText) => {
-        scanner.clear();
-        onScan(decodedText);
+        scanner.clear().catch(() => {});
+        onScanRef.current(decodedText.trim());
       },
       (error) => {
         console.log(error);
@@ -59,7 +62,7 @@ export default function BarcodeScanner({
         scannerRef.current.clear().catch((err) => console.error(err));
       }
     };
-  }, [showCamera, onScan]);
+  }, [showCamera]);
 
   const handleManualSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -70,10 +73,15 @@ export default function BarcodeScanner({
   };
 
   const handleKeyboardInput = (e: React.KeyboardEvent<HTMLInputElement>) => {
-    if (e.key === "Enter" && manualInput.trim()) {
+    if (e.key === "Enter") {
       e.preventDefault();
-      onScan(manualInput.trim());
-      setManualInput("");
+      // Read straight from the field: a fast Zebra scan can send Enter
+      // before React state has caught up with the last characters
+      const value = e.currentTarget.value.trim();
+      if (value) {
+        onScan(value);
+        setManualInput("");
+      }
     }
   };
 

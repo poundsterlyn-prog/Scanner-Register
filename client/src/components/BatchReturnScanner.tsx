@@ -7,6 +7,7 @@ import { Badge } from "@/components/ui/badge";
 import { Camera, CheckCircle, AlertCircle, X } from "lucide-react";
 import { Html5QrcodeScanner } from "html5-qrcode";
 import { useLanguage } from "@/contexts/LanguageContext";
+import { normalizeScannerId } from "@/lib/db";
 
 interface ScannedItem {
   scannerId: string;
@@ -54,7 +55,7 @@ export default function BatchReturnScanner({
 
     scanner.render(
       (decodedText) => {
-        handleScan(decodedText);
+        handleScanRef.current(decodedText);
       },
       (error) => {
         console.log(error);
@@ -71,19 +72,18 @@ export default function BatchReturnScanner({
   }, [showCamera]);
 
   const handleScan = (scannerId: string) => {
-    const trimmedId = scannerId.trim();
-    
-    if (scannedItems.some((item) => item.scannerId === trimmedId)) {
-      setScannedItems((prev) => [
-        {
-          scannerId: trimmedId,
-          status: "error",
-          message: t("alreadyScanned"),
-          timestamp: new Date().toLocaleTimeString(),
-        },
-        ...prev,
-      ]);
+    const trimmedId = normalizeScannerId(scannerId);
+    if (!trimmedId) return;
+    setManualInput("");
+
+    // Camera can fire several times for the same barcode: ignore silently
+    // if this ID was already accepted
+    if (scannedItems.some((item) => item.scannerId === trimmedId && item.status === "success")) {
       return;
+    }
+    if (scannedItems.some((item) => item.scannerId === trimmedId)) {
+      // Previously failed: remove the old error line and validate again
+      setScannedItems((prev) => prev.filter((item) => item.scannerId !== trimmedId));
     }
 
     let result = { valid: true, message: t("scannerMarkedForReturn") };
@@ -100,9 +100,11 @@ export default function BatchReturnScanner({
       },
       ...prev,
     ]);
-
-    setManualInput("");
   };
+
+  // Camera callback is created once; route it to the latest handleScan
+  const handleScanRef = useRef(handleScan);
+  handleScanRef.current = handleScan;
 
   const handleManualSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -112,9 +114,12 @@ export default function BatchReturnScanner({
   };
 
   const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
-    if (e.key === "Enter" && manualInput.trim()) {
+    if (e.key === "Enter") {
       e.preventDefault();
-      handleScan(manualInput);
+      const value = e.currentTarget.value;
+      if (value.trim()) {
+        handleScan(value);
+      }
     }
   };
 
