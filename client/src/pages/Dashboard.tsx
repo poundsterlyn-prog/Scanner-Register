@@ -25,6 +25,9 @@ import {
   getTodayDate,
   getLast7DaysOptions,
   initializeDatabase,
+  normalizeScannerId,
+  sameScannerId,
+  APP_VERSION,
 } from "@/lib/db";
 import type { Scanner, Driver, Assignment, ScannerStatus } from "@shared/schema";
 import { useLiveQuery } from "dexie-react-hooks";
@@ -63,6 +66,24 @@ export default function Dashboard() {
   const drivers = useLiveQuery(() => driverStorage.getAll(), []) ?? [];
   const assignments = useLiveQuery(() => assignmentStorage.getByDate(today), [today]) ?? [];
   const reportAssignments = useLiveQuery(() => assignmentStorage.getByDate(selectedReportDate), [selectedReportDate]) ?? [];
+  // Open (not yet returned) assignments from any day
+  const openAssignments = useLiveQuery(() => assignmentStorage.getOpen(), []) ?? [];
+
+  // The current open assignment for a scanner (most recent), regardless of date
+  const findOpenAssignment = (scannerId: string): Assignment | undefined => {
+    const matches = openAssignments
+      .filter((a) => sameScannerId(a.scannerId, scannerId))
+      .sort((a, b) => a.id.localeCompare(b.id));
+    return matches[matches.length - 1];
+  };
+
+  // The most recent assignment for a scanner within a list (e.g. one day)
+  const findLatestAssignment = (list: Assignment[], scannerId: string): Assignment | undefined => {
+    const matches = list
+      .filter((a) => sameScannerId(a.scannerId, scannerId))
+      .sort((a, b) => a.id.localeCompare(b.id));
+    return matches[matches.length - 1];
+  };
 
   // Initialize database on mount
   useEffect(() => {
@@ -80,7 +101,17 @@ export default function Dashboard() {
 
   // Combine scanners with their assignments for display (dashboard)
   const scannerViews: ScannerView[] = scanners.map((scanner) => {
-    const assignment = assignments.find((a) => a.scannerId === scanner.id);
+    const open = findOpenAssignment(scanner.id);
+    if (open) {
+      return {
+        id: scanner.id,
+        driver: open.driverName,
+        assignedTime: open.assignedTime,
+        // Still out from a previous day -> show as overdue
+        status: open.date < today ? ("overdue" as const) : ("assigned" as const),
+      };
+    }
+    const assignment = findLatestAssignment(assignments, scanner.id);
     if (assignment) {
       return {
         id: scanner.id,
@@ -98,7 +129,7 @@ export default function Dashboard() {
 
   // Combine scanners with report assignments for the selected date
   const reportScannerViews: ScannerView[] = scanners.map((scanner) => {
-    const assignment = reportAssignments.find((a) => a.scannerId === scanner.id);
+    const assignment = findLatestAssignment(reportAssignments, scanner.id);
     if (assignment) {
       return {
         id: scanner.id,
@@ -126,8 +157,10 @@ export default function Dashboard() {
     (s) => s.status === "assigned" || s.status === "overdue"
   ).length;
 
-  const handleScanForAssignment = async (barcode: string) => {
-    const scanner = await scannerStorage.getById(barcode);
+  const handleScanForAssignment = async (rawBarcode: string) => {
+    const barcode = normalizeScannerId(rawBarcode);
+    if (!barcode) return;
+    const scanner = await scannerStorage.findMatching(barcode);
     if (!scanner) {
       toast({
         title: t("scannerNotFound"),
@@ -137,18 +170,19 @@ export default function Dashboard() {
       return;
     }
 
-    // Check if already assigned today
-    const existingAssignment = assignments.find((a) => a.scannerId === barcode);
-    if (existingAssignment && existingAssignment.status !== "returned") {
+    // Check if this scanner is still out (on any day)
+    const existingAssignment = findOpenAssignment(scanner.id);
+    if (existingAssignment) {
       toast({
         title: t("alreadyAssigned"),
-        description: `${t("scannerId")} ${barcode} ${t("alreadyAssignedTo")} ${existingAssignment.driverName}.`,
+        description: `${t("scannerId")} ${scanner.id} ${t("alreadyAssignedTo")} ${existingAssignment.driverName}.`,
         variant: "destructive",
       });
       return;
     }
 
-    setScannedId(barcode);
+    // Use the ID exactly as it is stored, so the assignment links correctly
+    setScannedId(scanner.id);
     setViewMode("assign-driver");
   };
 
@@ -179,19 +213,14 @@ export default function Dashboard() {
     setViewMode("dashboard");
   };
 
-  const validateScannerForReturn = (barcode: string) => {
-    const assignment = assignments.find((a) => a.scannerId === barcode);
+  const validateScannerForReturn = (rawBarcode: string) => {
+    const barcode = normalizeScannerId(rawBarcode);
+    const assignment = findOpenAssignment(barcode);
     if (!assignment) {
+      const isRegistered = scanners.some((s) => sameScannerId(s.id, barcode));
       return {
         valid: false,
-        message: t("scannerNotFoundInSystem"),
-      };
-    }
-
-    if (assignment.status === "returned") {
-      return {
-        valid: false,
-        message: t("notCurrentlyAssigned"),
+        message: isRegistered ? t("notCurrentlyAssigned") : t("scannerNotFoundInSystem"),
       };
     }
 
@@ -209,8 +238,8 @@ export default function Dashboard() {
     });
 
     // Update each assignment
-    for (const scannerId of scannerIds) {
-      const assignment = assignments.find((a) => a.scannerId === scannerId);
+    for (const rawId of scannerIds) {
+      const assignment = findOpenAssignment(normalizeScannerId(rawId));
       if (assignment) {
         await assignmentStorage.update(assignment.id, {
           returnTime: timeString,
@@ -235,8 +264,10 @@ export default function Dashboard() {
     // Don't navigate away - let user continue scanning or manually cancel
   };
 
-  const handleRegisterScanner = async (barcode: string) => {
-    const exists = await scannerStorage.exists(barcode);
+  const handleRegisterScanner = async (rawBarcode: string) => {
+    const barcode = normalizeScannerId(rawBarcode);
+    if (!barcode) return;
+    const exists = await scannerStorage.findMatching(barcode);
     if (exists) {
       toast({
         title: t("alreadyRegistered"),
@@ -302,7 +333,7 @@ export default function Dashboard() {
     // Also delete all assignments for this scanner (past and present)
     // to allow re-registration with the same ID
     const allAssignments = await assignmentStorage.getAll();
-    const scannerAssignments = allAssignments.filter((a) => a.scannerId === id);
+    const scannerAssignments = allAssignments.filter((a) => sameScannerId(a.scannerId, id));
     for (const assignment of scannerAssignments) {
       await assignmentStorage.delete(assignment.id);
     }
@@ -603,7 +634,10 @@ export default function Dashboard() {
         }}
       />
 
-      <main className="container max-w-4xl mx-auto p-4 md:p-6 pb-20">{renderView()}</main>
+      <main className="container max-w-4xl mx-auto p-4 md:p-6 pb-20">
+        {renderView()}
+        <p className="text-center text-xs text-muted-foreground mt-8">versie {APP_VERSION}</p>
+      </main>
     </div>
   );
 }
