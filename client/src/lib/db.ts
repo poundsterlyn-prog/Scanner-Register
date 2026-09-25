@@ -21,6 +21,14 @@ export function normalizeScannerId(raw: string): string {
     .toUpperCase();
 }
 
+/** Compare two scanner IDs, ignoring case and invisible characters */
+export function sameScannerId(a: string, b: string): boolean {
+  return normalizeScannerId(a) === normalizeScannerId(b);
+}
+
+// Shown at the bottom of the app so you can see which version is running
+export const APP_VERSION = "fix-3";
+
 // Define the schema
 db.version(2).stores({
   scanners: "id, registeredAt, notes",
@@ -66,6 +74,11 @@ export const scannerStorage = {
 
   async getById(id: string): Promise<Scanner | undefined> {
     return await db.scanners.get(id);
+  },
+
+  // Find a scanner regardless of upper/lower case in the stored ID
+  async findMatching(id: string): Promise<Scanner | undefined> {
+    return await db.scanners.filter((s) => sameScannerId(s.id, id)).first();
   },
 
   async add(scanner: Scanner): Promise<void> {
