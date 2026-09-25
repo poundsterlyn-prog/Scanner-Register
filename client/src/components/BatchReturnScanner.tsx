@@ -95,11 +95,16 @@ export default function BatchReturnScanner({
       {
         scannerId: trimmedId,
         status: result.valid ? "success" : "error",
-        message: result.message,
+        message: result.valid ? t("returned") : result.message,
         timestamp: new Date().toLocaleTimeString(),
       },
       ...prev,
     ]);
+
+    // Return immediately on a valid scan, no extra button needed
+    if (result.valid) {
+      onComplete([trimmedId]);
+    }
   };
 
   // Camera callback is created once; route it to the latest handleScan
@@ -121,13 +126,6 @@ export default function BatchReturnScanner({
         handleScan(value);
       }
     }
-  };
-
-  const handleComplete = () => {
-    const successfulScans = scannedItems
-      .filter((item) => item.status === "success")
-      .map((item) => item.scannerId);
-    onComplete(successfulScans);
   };
 
   const handleRemove = (scannerId: string) => {
@@ -256,16 +254,8 @@ export default function BatchReturnScanner({
       )}
 
       <div className="flex gap-2">
-        <Button
-          onClick={handleComplete}
-          disabled={successCount === 0}
-          className="flex-1"
-          data-testid="button-complete-batch"
-        >
-          {t("completeReturn")} ({successCount})
-        </Button>
         {onCancel && (
-          <Button variant="outline" onClick={onCancel} data-testid="button-cancel-batch-bottom">
+          <Button variant="outline" onClick={onCancel} className="flex-1" data-testid="button-cancel-batch-bottom">
             {t("cancel")}
           </Button>
         )}
